@@ -4,17 +4,19 @@
 
 **Live Site:** [guns.yufantechs.com](https://guns.yufantechs.com)
 
-## Features
+## Features / 功能
 
-- **主播同款改枪码** - 36+ 位主播的改枪方案，一键复制改枪码
-- **官方热门改枪码** - 自动同步腾讯 AMS 官方数据
-- **玩家社区** - 玩家自建改枪方案，投票、评论、分享
-- **每日口令** - 每日更新的游戏口令码
-- **物价趋势** - 武器配件价格走势图表
-- **制造概率** - 武器制造概率查询
-- **物品图鉴** - 全物品数据库搜索
-- **战术地图** - 互动式地图工具
-- **配装推荐** - 武器配装方案
+| Feature | Description | 功能 | 说明 |
+|---------|-------------|------|------|
+| Streamer Builds | 36+ streamers' weapon builds, one-click copy | 主播同款改枪码 | 36+ 位主播的改枪方案，一键复制改枪码 |
+| Official Hot Codes | Auto-synced from Tencent AMS official data | 官方热门改枪码 | 自动同步腾讯 AMS 官方数据 |
+| Player Community | Player-created builds with voting & comments | 玩家社区 | 玩家自建改枪方案，投票、评论、分享 |
+| Daily Codes | Daily updated game redemption codes | 每日口令 | 每日更新的游戏口令码 |
+| Price Trends | Weapon attachment price trend charts | 物价趋势 | 武器配件价格走势图表 |
+| Crafting Odds | Weapon crafting probability lookup | 制造概率 | 武器制造概率查询 |
+| Item Database | Full item catalog with search | 物品图鉴 | 全物品数据库搜索 |
+| Tactical Map | Interactive map tool | 战术地图 | 互动式地图工具 |
+| Loadout Guide | Weapon loadout recommendations | 配装推荐 | 武器配装方案 |
 
 ## Screenshots
 
