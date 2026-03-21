@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
+import SEO from '../components/SEO';
 
 const MAPS = [
   { id: 1, name: '零号大坝', icon: '🏗️', color: '#20e870' },
@@ -91,6 +92,7 @@ function DailyPassword() {
 
   return (
     <div>
+      <SEO title="每日密码" path="/daily" description="三角洲行动每日地图密码查询，零号大坝、长弓溪谷、巴克什、航天基地、潮汐监狱每日更新。" />
       <h1 className="page-title">每日密码</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>
         更新时间：{formatTime(lastUpdate) || '暂无数据'}

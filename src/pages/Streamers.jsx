@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import SEO from '../components/SEO';
 
 const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
 const SLOT_NAME = {"1":"弹匣","2":"枪口","3":"握把","5":"枪托","6":"瞄具","8":"激光","11":"护木","17":"导轨","20":"导轨","32":"导轨","34":"导轨","35":"导轨","44":"弹鼓"};
@@ -13,20 +14,23 @@ function Streamers() {
   const [expandedId, setExpandedId] = useState(null);
 
   const fetchData = useCallback(async () => {
-    const [{ data: codesData }, { data: itemsData }] = await Promise.all([
+    const [{ data: codesData }, { data: itemsData }, { data: streamersData }] = await Promise.all([
       supabase.from('official_gun_codes').select('*').neq('is_hidden', true).order('apply_num', { ascending: false }),
       supabase.from('game_items').select('object_id, object_name, pic, avg_price, grade, second_class_cn'),
+      supabase.from('streamers').select('*').eq('is_hidden', false).order('sort_order'),
     ]);
     const map = {};
     (itemsData || []).forEach(i => { map[i.object_id] = i; });
-    return { codes: codesData || [], itemsMap: map };
+    return { codes: codesData || [], itemsMap: map, streamersOrder: streamersData || [] };
   }, []);
 
   const [data, loading] = useCachedData('streamers', fetchData);
   const codes = data?.codes || [];
   const itemsMap = data?.itemsMap || {};
+  const streamersOrder = data?.streamersOrder || [];
 
   const streamers = useMemo(() => {
+    // 按 codes 聚合统计
     const map = {};
     codes.forEach(c => {
       const name = c.author_nickname || '未知';
@@ -34,8 +38,21 @@ function Streamers() {
       map[name].codes.push(c); map[name].totalApply += (c.apply_num || 0); map[name].totalLikes += (c.like_num || 0);
       if (c.author_avatar && !map[name].avatar) map[name].avatar = c.author_avatar;
     });
+    // 按 streamers 表的 sort_order 排序，优先用 streamers 表的头像
+    if (streamersOrder.length) {
+      const orderMap = {};
+      streamersOrder.forEach((s, i) => { orderMap[s.name] = { sort: i, avatar: s.avatar_url }; });
+      Object.values(map).forEach(s => {
+        if (orderMap[s.name]?.avatar) s.avatar = orderMap[s.name].avatar;
+      });
+      return Object.values(map).sort((a, b) => {
+        const aSort = orderMap[a.name]?.sort ?? 9999;
+        const bSort = orderMap[b.name]?.sort ?? 9999;
+        return aSort - bSort;
+      });
+    }
     return Object.values(map).sort((a, b) => b.totalApply - a.totalApply);
-  }, [codes]);
+  }, [codes, streamersOrder]);
 
   const filteredStreamers = useMemo(() => {
     if (!search.trim()) return streamers;
@@ -153,6 +170,7 @@ function Streamers() {
   // 主播列表
   return (
     <div>
+      <SEO title="主播同款改枪码" path="/streamers" description="三角洲行动主播改枪码合集，热门主播同款武器配置方案，一键复制使用。" />
       <h1 className="page-title">🎙️ 主播同款改枪码</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>来自官方社区 · {streamers.length} 位主播 · {codes.length} 个方案</p>
       <div className="search-bar" style={{ marginBottom: 20, flex: 'none' }}><span className="search-icon">🔍</span><input placeholder="搜索主播名称..." value={search} onChange={e => setSearch(e.target.value)} /></div>

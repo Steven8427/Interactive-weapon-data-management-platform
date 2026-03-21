@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import SEO from '../components/SEO';
 
 const TIERS = [
   { key: '11w', name: '大坝、长弓机密', budget: '11W', color: '#20e870' },
@@ -151,6 +152,7 @@ function Loadout() {
 
   return (
     <div>
+      <SEO title="卡战备系统" path="/cards" description="三角洲行动卡战备配装推荐，不同预算档位的最优枪械、护甲、装备搭配方案。" />
       <div style={{ display:'flex', alignItems:'baseline', gap:12, marginBottom:4, flexWrap:'wrap' }}>
         <h1 className="page-title" style={{ marginBottom:0 }}>🃏 卡战备系统</h1>
         <span style={{ fontSize:13, color:'var(--text-muted)' }}>更新：{fmtT(lastUpdate)}</span>

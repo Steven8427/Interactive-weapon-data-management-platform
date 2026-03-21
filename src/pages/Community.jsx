@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
+import SEO from '../components/SEO';
 
 const CATS = ["全部","突击步枪","战斗步枪","射手步枪","冲锋枪","机枪","狙击步枪","连狙","霰弹枪","手枪","弓弩"];
 const CAT_ICON = {"突击步枪":"🔫","战斗步枪":"⚔️","射手步枪":"🎯","冲锋枪":"💨","机枪":"🔥","狙击步枪":"🔭","连狙":"🎯","霰弹枪":"💥","手枪":"🔫","弓弩":"🏹"};
@@ -45,6 +46,15 @@ function Community() {
   const [gunSearch, setGunSearch] = useState('');
   const [catalogResults, setCatalogResults] = useState([]);
   const [showCatalog, setShowCatalog] = useState(false);
+  const catalogRef = useRef(null);
+
+  // 点击外部关闭下拉
+  useEffect(() => {
+    if (!showCatalog) return;
+    const handler = (e) => { if (catalogRef.current && !catalogRef.current.contains(e.target)) setShowCatalog(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showCatalog]);
 
   // Load saved login
   useEffect(() => { const s = localStorage.getItem('df_player'); if (s) try { setPlayer(JSON.parse(s)); } catch {} }, []);
@@ -186,12 +196,16 @@ function Community() {
   // Add gun from catalog - optimistic local update
   async function addGunFromCatalog(item) {
     if (!player) return;
-    const sfx = ['突击步枪','射手步枪','狙击步枪','冲锋枪','轻机枪','通用机枪','霰弹枪','紧凑突击步枪','战斗步枪'];
-    let name = item.object_name; for (const s of sfx) name = name.replace(s, '').trim();
+    const catSuffixes = ['紧凑突击步枪','通用机枪','轻机枪','突击步枪','战斗步枪','射手步枪','狙击步枪','冲锋枪','霰弹枪','手枪'];
+    const catMap = {'紧凑突击步枪':'突击步枪','通用机枪':'机枪','轻机枪':'机枪'};
+    const CLASS_TO_CAT = { gunRifle:'突击步枪', gunSMG:'冲锋枪', gunShotgun:'霰弹枪', gunSniper:'狙击步枪', gunMP:'射手步枪', gunLMG:'机枪', gunPistol:'手枪' };
+    let name = item.object_name;
+    let cat = CLASS_TO_CAT[item.second_class] || item.second_class_cn || '突击步枪';
+    for (const s of catSuffixes) {
+      if (name.includes(s)) { cat = catMap[s] || s; name = name.replace(s, '').trim(); break; }
+    }
     const existing = guns.find(g => g.name === name);
     if (existing) { toast.error('已有此枪械'); setShowCatalog(false); setGunSearch(''); return; }
-    const CLASS_TO_CAT = { gunRifle:'突击步枪', gunSMG:'冲锋枪', gunShotgun:'霰弹枪', gunSniper:'狙击步枪', gunMP:'射手步枪', gunLMG:'机枪', gunPistol:'手枪' };
-    const cat = CLASS_TO_CAT[item.second_class] || item.second_class_cn || '突击步枪';
     const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
     const { data: newGun } = await supabase.from('guns').insert({ name, category: cat, image_url: item.pic || '', player_id: player.id, sort_order: mx + 1 }).select().single();
     if (newGun) setGuns(prev => [...prev, { ...newGun, variants: [] }]);
@@ -317,7 +331,7 @@ function Community() {
           <div className="admin-section" style={{ marginBottom: 16 }}>
             <h3>✏️ 添加枪械与改枪码</h3>
             {/* 搜索添加枪械 */}
-            <div style={{ position: 'relative', marginBottom: 14 }}>
+            <div ref={catalogRef} style={{ position: 'relative', marginBottom: 14 }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>搜索枪械（从官方目录添加）</label>
                 <input type="text" value={gunSearch} onChange={e => searchCatalog(e.target.value)} placeholder="输入枪名，如 AKM、M4A1..."
@@ -458,6 +472,7 @@ function Community() {
   // =====================================================================
   return (
     <div>
+      <SEO title="玩家社区" path="/community" description="三角洲行动玩家改枪码分享社区，注册分享你的武器配置方案，交流改枪心得。" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <h1 className="page-title">🌐 玩家社区</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

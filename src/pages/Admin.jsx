@@ -20,7 +20,7 @@ const ALL_CATS = ["突击步枪","战斗步枪","射手步枪","冲锋枪","机�
 function Admin({ isAdmin, setIsAdmin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [tab, setTab] = useState('guns');
+  const [tab, setTab] = useState('streamers');
   const [adminInfo, setAdminInfo] = useState(null);
   const [authors, setAuthors] = useState([]);
   const [guns, setGuns] = useState([]);
@@ -37,8 +37,18 @@ function Admin({ isAdmin, setIsAdmin }) {
   const [qqCreds, setQqCreds] = useState({ openid: '', access_token: '', updated_at: '' });
   const [qqForm, setQqForm] = useState({ openid: '', access_token: '' });
   const [qqSaving, setQqSaving] = useState(false);
-  const [customStreamer, setCustomStreamer] = useState({ name: '', author_nickname: '', author_avatar: '', arms_name: '', arms_category: '突击步枪', solution_code: '', price: '', author_comment: '' });
+  const [customStreamer, setCustomStreamer] = useState({ name: '', arms_name: '', arms_category: '突击步枪', arms_pic: '', solution_code: '', price: '', author_comment: '' });
   const [customStreamerAvatar, setCustomStreamerAvatar] = useState(null);
+  const [selectedStreamerName, setSelectedStreamerName] = useState('');
+  const [newStreamerForm, setNewStreamerForm] = useState({ nickname: '', avatar: null });
+  const [streamerCodeSearch, setStreamerCodeSearch] = useState('');
+  const [streamerCatalogResults, setStreamerCatalogResults] = useState([]);
+  const [showStreamerCatalog, setShowStreamerCatalog] = useState(false);
+  const [editingCode, setEditingCode] = useState(null);
+  const [editCodeCatalog, setEditCodeCatalog] = useState([]);
+  const [showEditCatalog, setShowEditCatalog] = useState(false);
+  const [streamersData, setStreamersData] = useState([]);
+  const [dragIdx, setDragIdx] = useState(null);
 
   const [newAuthor, setNewAuthor] = useState({ name: '', slug: '', description: '' });
   const [newAuthorAvatar, setNewAuthorAvatar] = useState(null);
@@ -133,6 +143,11 @@ function Admin({ isAdmin, setIsAdmin }) {
     setOfficialCodes(data || []);
   }, []);
 
+  const fetchStreamers = useCallback(async () => {
+    const { data } = await supabase.from('streamers').select('*').order('sort_order');
+    setStreamersData(data || []);
+  }, []);
+
   const fetchPendingProfiles = useCallback(async () => {
     const { data } = await supabase.from('players').select('*').eq('profile_status', 'pending').order('created_at');
     setPendingProfiles(data || []);
@@ -148,7 +163,7 @@ function Admin({ isAdmin, setIsAdmin }) {
     if (data) { setQqCreds(data); setQqForm({ openid: data.openid || '', access_token: data.access_token || '' }); }
   }, []);
 
-  useEffect(() => { if (isAdmin) { fetchAll(); fetchPasswords(); if (isSuper) { fetchAdmins(); fetchReviews(); fetchCommunity(); fetchPendingCodes(); fetchOfficialCodes(); fetchPendingProfiles(); fetchBannedWords(); fetchQqCreds(); } } }, [isAdmin, fetchAll, fetchPasswords, fetchAdmins, fetchReviews, fetchCommunity, fetchPendingCodes, fetchOfficialCodes, fetchPendingProfiles, fetchBannedWords, fetchQqCreds, isSuper]);
+  useEffect(() => { if (isAdmin) { fetchAll(); fetchPasswords(); if (isSuper) { fetchAdmins(); fetchReviews(); fetchCommunity(); fetchPendingCodes(); fetchOfficialCodes(); fetchStreamers(); fetchPendingProfiles(); fetchBannedWords(); fetchQqCreds(); } } }, [isAdmin, fetchAll, fetchPasswords, fetchAdmins, fetchReviews, fetchCommunity, fetchPendingCodes, fetchOfficialCodes, fetchStreamers, fetchPendingProfiles, fetchBannedWords, fetchQqCreds, isSuper]);
 
   // 搜索枪械目录
   async function searchCatalog(query) {
@@ -158,13 +173,21 @@ function Admin({ isAdmin, setIsAdmin }) {
     setCatalogResults(data || []); setShowCatalog(true);
   }
 
+  function extractGunNameAndCat(objectName, secondClass) {
+    const catSuffixes = ['紧凑突击步枪','通用机枪','轻机枪','突击步枪','战斗步枪','射手步枪','狙击步枪','冲锋枪','霰弹枪','手枪'];
+    const catMap = {'紧凑突击步枪':'突击步枪','通用机枪':'机枪','轻机枪':'机枪'};
+    let name = objectName;
+    let cat = API_CLASS_TO_CAT[secondClass] || '突击步枪';
+    for (const s of catSuffixes) {
+      if (name.includes(s)) { cat = catMap[s] || s; name = name.replace(s, '').trim(); break; }
+    }
+    return { name, cat };
+  }
+
   // 普通管理员：直接添加
   async function quickAddGun(item) {
     if (!selectedAuthorId) { toast.error('未关联作者'); return; }
-    const suffixes = ['突击步枪','射手步枪','狙击步枪','冲锋枪','轻机枪','通用机枪','霰弹枪','紧凑突击步枪','战斗步枪'];
-    let name = item.object_name;
-    for (const s of suffixes) name = name.replace(s, '').trim();
-    const cat = API_CLASS_TO_CAT[item.second_class] || '突击步枪';
+    const { name, cat } = extractGunNameAndCat(item.object_name, item.second_class);
     const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
     const { error } = await supabase.from('guns').insert({ name, category: cat, image_url: item.pic || null, author_id: selectedAuthorId, sort_order: mx + 1 });
     if (error) { toast.error('添加失败：' + error.message); return; }
@@ -174,12 +197,10 @@ function Admin({ isAdmin, setIsAdmin }) {
 
   // 超管搜索选择
   function superSelectFromCatalog(item) {
-    const suffixes = ['突击步枪','射手步枪','狙击步枪','冲锋枪','轻机枪','通用机枪','霰弹枪','紧凑突击步枪','战斗步枪'];
-    let name = item.object_name;
-    for (const s of suffixes) name = name.replace(s, '').trim();
+    const { name, cat } = extractGunNameAndCat(item.object_name, item.second_class);
     setSuperGunName(name);
     setSuperGunImageUrl(item.pic || '');
-    setSuperGunCat(API_CLASS_TO_CAT[item.second_class] || '突击步枪');
+    setSuperGunCat(cat);
     setShowCatalog(false);
   }
 
@@ -277,6 +298,13 @@ function Admin({ isAdmin, setIsAdmin }) {
     await supabase.from('gun_variants').update({ status: 'approved' }).eq('id', id);
     toast.success('已通过！'); fetchPendingCodes(); fetchAll();
   }
+  async function approveAllCodes() {
+    if (!pendingCodes.length) return;
+    if (!window.confirm(`一键通过全部 ${pendingCodes.length} 个待审核改枪码？`)) return;
+    const ids = pendingCodes.map(c => c.id);
+    await supabase.from('gun_variants').update({ status: 'approved' }).in('id', ids);
+    toast.success(`已通过全部 ${ids.length} 个改枪码！`); fetchPendingCodes(); fetchAll();
+  }
   async function rejectCode(id) {
     if (!window.confirm('拒绝并删除此改枪码？')) return;
     await supabase.from('gun_variants').delete().eq('id', id);
@@ -294,29 +322,109 @@ function Admin({ isAdmin, setIsAdmin }) {
     toast.success('已删除'); fetchOfficialCodes();
   }
 
-  // 手动添加主播改枪码
-  async function addCustomStreamer() {
-    if (!customStreamer.name.trim() || !customStreamer.author_nickname.trim() || !customStreamer.solution_code.trim()) {
-      toast.error('方案名、主播名和改枪码必填'); return;
+  // 主播改枪码：搜索枪械目录
+  async function searchStreamerCatalog(query) {
+    setStreamerCodeSearch(query);
+    if (query.length < 1) { setStreamerCatalogResults([]); setShowStreamerCatalog(false); return; }
+    const { data } = await supabase.from('gun_catalog').select('*').ilike('object_name', `%${query}%`).eq('primary_class', 'gun').limit(10);
+    setStreamerCatalogResults(data || []); setShowStreamerCatalog(true);
+  }
+
+  function selectStreamerGun(item) {
+    const { name, cat } = extractGunNameAndCat(item.object_name, item.second_class);
+    setCustomStreamer(prev => ({ ...prev, arms_name: name, arms_category: cat, arms_pic: item.pic || '' }));
+    setStreamerCodeSearch(name);
+    setShowStreamerCatalog(false);
+  }
+
+  // 从 streamers 表获取主播列表，聚合 official_gun_codes 统计
+  const streamersList = (() => {
+    const codeStats = {};
+    officialCodes.forEach(c => {
+      const n = c.author_nickname; if (!n) return;
+      if (!codeStats[n]) codeStats[n] = { count: 0, hiddenCount: 0, apply: 0 };
+      codeStats[n].count++;
+      if (c.is_hidden) codeStats[n].hiddenCount++;
+      codeStats[n].apply += (c.apply_num || 0);
+    });
+    return streamersData.map(s => ({
+      ...s, name: s.name, avatar: s.avatar_url,
+      count: codeStats[s.name]?.count || 0,
+      hiddenCount: codeStats[s.name]?.hiddenCount || 0,
+      apply: codeStats[s.name]?.apply || 0,
+    }));
+  })();
+  const selectedStreamerCodes = officialCodes.filter(c => c.author_nickname === selectedStreamerName);
+  const selectedStreamerInfo = streamersList.find(s => s.name === selectedStreamerName);
+
+  // 批量下架/上架主播
+  async function toggleStreamerHidden(name, hidden) {
+    const codes = officialCodes.filter(c => c.author_nickname === name);
+    if (!codes.length) return;
+    const action = hidden ? '下架' : '上架';
+    if (!window.confirm(`确定${action}「${name}」的全部 ${codes.length} 个改枪码？`)) return;
+    const ids = codes.map(c => c.id);
+    const { error } = await supabase.from('official_gun_codes').update({ is_hidden: hidden }).in('id', ids);
+    if (error) { toast.error(`${action}失败`); return; }
+    toast.success(`已${action}「${name}」的 ${codes.length} 个改枪码`); fetchOfficialCodes();
+  }
+
+  // 删除主播及所有改枪码
+  async function deleteStreamerAll(name) {
+    const codes = officialCodes.filter(c => c.author_nickname === name);
+    if (!window.confirm(`⚠️ 确定要删除「${name}」及其全部 ${codes.length} 个改枪码？\n此操作不可撤销！`)) return;
+    if (!window.confirm(`再次确认：删除「${name}」的所有改枪码？`)) return;
+    if (codes.length) {
+      const ids = codes.map(c => c.id);
+      const { error } = await supabase.from('official_gun_codes').delete().in('id', ids);
+      if (error) { toast.error('删除失败'); return; }
     }
-    let avatarUrl = customStreamer.author_avatar;
+    await supabase.from('streamers').delete().eq('name', name);
+    toast.success(`已删除「${name}」`);
+    setSelectedStreamerName(''); fetchOfficialCodes(); fetchStreamers();
+  }
+
+  // 添加新主播
+  async function addNewStreamer() {
+    const name = newStreamerForm.nickname.trim();
+    if (!name) { toast.error('主播名必填'); return; }
+    if (streamersData.some(s => s.name === name)) { toast.error('该主播已存在'); return; }
+    let avatarUrl = null;
+    if (newStreamerForm.avatar) {
+      try { avatarUrl = await uploadImage(newStreamerForm.avatar); } catch { toast.error('头像上传失败'); return; }
+    }
+    const maxSort = streamersData.reduce((m, s) => Math.max(m, s.sort_order), -1);
+    const { error } = await supabase.from('streamers').insert({ name, avatar_url: avatarUrl, sort_order: maxSort + 1 });
+    if (error) { toast.error('添加失败：' + error.message); return; }
+    toast.success(`主播「${name}」已添加！`);
+    setSelectedStreamerName(name);
+    setNewStreamerForm({ nickname: '', avatar: null });
+    fetchStreamers();
+  }
+
+  // 给选中的主播添加改枪码
+  async function addStreamerCode() {
+    if (!selectedStreamerName) { toast.error('请先选择主播'); return; }
+    const streamerName = selectedStreamerName;
+    if (!customStreamer.name.trim() || !customStreamer.solution_code.trim()) {
+      toast.error('方案名和改枪码必填'); return;
+    }
+    if (!customStreamer.arms_name.trim()) { toast.error('请搜索选择枪械'); return; }
+    // 从 streamers 表获取头像
+    const streamer = streamersData.find(s => s.name === streamerName);
+    let avatarUrl = streamer?.avatar_url || null;
     if (customStreamerAvatar) {
-      try {
-        const ext = customStreamerAvatar.name.split('.').pop();
-        const fname = `streamer_${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('gun-images').upload(fname, customStreamerAvatar);
-        if (upErr) { toast.error('头像上传失败'); return; }
-        const { data: urlData } = supabase.storage.from('gun-images').getPublicUrl(fname);
-        avatarUrl = urlData.publicUrl;
-      } catch { toast.error('上传失败'); return; }
+      try { avatarUrl = await uploadImage(customStreamerAvatar); } catch { toast.error('头像上传失败'); return; }
     }
-    // Get max sort_order
     const maxSort = officialCodes.reduce((m, c) => Math.max(m, c.sort_order || 0), 0);
+    const customId = 900000000 + Math.floor(Math.random() * 99999999);
     const { error } = await supabase.from('official_gun_codes').insert({
+      id: customId,
       name: customStreamer.name.trim(),
-      author_nickname: customStreamer.author_nickname.trim(),
-      author_avatar: avatarUrl || null,
-      arms_name: customStreamer.arms_name.trim() || customStreamer.name.trim(),
+      author_nickname: streamerName,
+      author_avatar: avatarUrl,
+      arms_name: customStreamer.arms_name.trim(),
+      arms_pic: customStreamer.arms_pic || null,
       arms_category: customStreamer.arms_category,
       solution_code: customStreamer.solution_code.trim(),
       price: parseInt(customStreamer.price) || 0,
@@ -326,10 +434,64 @@ function Admin({ isAdmin, setIsAdmin }) {
       synced_at: new Date().toISOString(),
     });
     if (error) { toast.error('添加失败：' + error.message); return; }
-    toast.success('主播改枪码已添加！');
-    setCustomStreamer({ name: '', author_nickname: '', author_avatar: '', arms_name: '', arms_category: '突击步枪', solution_code: '', price: '', author_comment: '' });
-    setCustomStreamerAvatar(null);
+    toast.success('改枪码已添加！');
+    setCustomStreamer({ name: '', arms_name: '', arms_category: '突击步枪', arms_pic: '', solution_code: '', price: '', author_comment: '' });
+    setCustomStreamerAvatar(null); setStreamerCodeSearch('');
     fetchOfficialCodes();
+  }
+
+  // 更新主播头像
+  async function updateStreamerAvatar(name, file) {
+    try {
+      const url = await uploadImage(file);
+      // 更新 streamers 表
+      await supabase.from('streamers').update({ avatar_url: url }).eq('name', name);
+      // 同步更新 official_gun_codes 中的头像
+      const ids = officialCodes.filter(c => c.author_nickname === name).map(c => c.id);
+      if (ids.length) await supabase.from('official_gun_codes').update({ author_avatar: url }).in('id', ids);
+      toast.success('头像已更新！'); fetchStreamers(); fetchOfficialCodes();
+    } catch { toast.error('失败'); }
+  }
+
+  // 编辑改枪码
+  async function searchEditCatalog(query) {
+    if (query.length < 1) { setEditCodeCatalog([]); setShowEditCatalog(false); return; }
+    const { data } = await supabase.from('gun_catalog').select('*').ilike('object_name', `%${query}%`).eq('primary_class', 'gun').limit(10);
+    setEditCodeCatalog(data || []); setShowEditCatalog(true);
+  }
+  function selectEditGun(item) {
+    const { name, cat } = extractGunNameAndCat(item.object_name, item.second_class);
+    setEditingCode(prev => ({ ...prev, arms_name: item.object_name, arms_category: cat, arms_pic: item.pic || '', _gunSearch: name }));
+    setShowEditCatalog(false);
+  }
+  async function saveEditCode() {
+    if (!editingCode) return;
+    const { error } = await supabase.from('official_gun_codes').update({
+      name: editingCode.name, solution_code: editingCode.solution_code,
+      arms_name: editingCode.arms_name, arms_pic: editingCode.arms_pic,
+      arms_category: editingCode.arms_category, price: parseInt(editingCode.price) || 0,
+      author_comment: editingCode.author_comment || null,
+    }).eq('id', editingCode.id);
+    if (error) { toast.error('保存失败'); return; }
+    toast.success('已更新！'); setEditingCode(null); fetchOfficialCodes();
+  }
+
+  // 拖动排序
+  async function handleStreamerDrop(dropIdx) {
+    if (dragIdx === null || dragIdx === dropIdx) { setDragIdx(null); return; }
+    const newList = [...streamersData];
+    const [moved] = newList.splice(dragIdx, 1);
+    newList.splice(dropIdx, 0, moved);
+    // 乐观更新
+    const updated = newList.map((s, i) => ({ ...s, sort_order: i }));
+    setStreamersData(updated);
+    setDragIdx(null);
+    // 批量 upsert
+    const { error } = await supabase.from('streamers').upsert(
+      updated.map(s => ({ id: s.id, name: s.name, avatar_url: s.avatar_url, sort_order: s.sort_order, is_hidden: s.is_hidden }))
+    );
+    if (error) { toast.error('排序保存失败'); fetchStreamers(); return; }
+    toast.success('排序已更新');
   }
 
   // 玩家资料审核
@@ -343,6 +505,19 @@ function Admin({ isAdmin, setIsAdmin }) {
     updates.pending_nickname = null; updates.pending_description = null; updates.pending_avatar_url = null;
     await supabase.from('players').update(updates).eq('id', pid);
     toast.success('资料已通过！'); fetchPendingProfiles();
+  }
+  async function approveAllProfiles() {
+    if (!pendingProfiles.length) return;
+    if (!window.confirm(`一键通过全部 ${pendingProfiles.length} 个资料修改？`)) return;
+    for (const p of pendingProfiles) {
+      const updates = { profile_status: 'approved' };
+      if (p.pending_nickname) updates.nickname = p.pending_nickname;
+      if (p.pending_description !== null) updates.description = p.pending_description;
+      if (p.pending_avatar_url) updates.avatar_url = p.pending_avatar_url;
+      updates.pending_nickname = null; updates.pending_description = null; updates.pending_avatar_url = null;
+      await supabase.from('players').update(updates).eq('id', p.id);
+    }
+    toast.success(`已通过全部 ${pendingProfiles.length} 个资料修改！`); fetchPendingProfiles();
   }
   async function rejectProfile(pid) {
     await supabase.from('players').update({ profile_status: 'approved', pending_nickname: null, pending_description: null, pending_avatar_url: null }).eq('id', pid);
@@ -538,7 +713,7 @@ function Admin({ isAdmin, setIsAdmin }) {
 
   // ======================== 超级管理员 ========================
   const pendingTotal = pendingCodes.length + pendingProfiles.length;
-  const tabs = [['authors','👤 作者'],['guns','🔫 枪械'],['passwords','🔑 密码'],['data','📊 数据'],['admins','🔒 管理员'],['community','🌐 社区'],['streamers','🎙️ 主播'],['codereview',`📋 审核${pendingTotal ? ` (${pendingTotal})` : ''}`],['words','🚫 敏感词']];
+  const tabs = [['streamers','🎙️ 主播'],['passwords','🔑 密码'],['data','📊 数据'],['community','🌐 社区'],['codereview',`📋 审核${pendingTotal ? ` (${pendingTotal})` : ''}`],['words','🚫 敏感词'],['admins','🔒 管理员']];
   if (reviews.length > 0) tabs.push(['reviews',`📝 审核 (${reviews.length})`]);
 
   return (
@@ -551,100 +726,6 @@ function Admin({ isAdmin, setIsAdmin }) {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {tabs.map(([k,l]) => (<button key={k} className={`filter-chip ${tab===k?'active':''}`} onClick={()=>setTab(k)}>{l}</button>))}
       </div>
-
-      {/* 作者 */}
-      {tab==='authors'&&(<>
-        <div className="admin-section">
-          <h3>➕ 添加作者</h3>
-          <div className="form-row">
-            <div className="form-group"><label>名称</label><input type="text" value={newAuthor.name} onChange={e=>setNewAuthor({...newAuthor,name:e.target.value})} placeholder="聪聪" /></div>
-            <div className="form-group"><label>Slug</label><input type="text" value={newAuthor.slug} onChange={e=>setNewAuthor({...newAuthor,slug:e.target.value.replace(/\s/g,'')})} placeholder="congcong" /></div>
-            <div className="form-group"><label>简介</label><input type="text" value={newAuthor.description} onChange={e=>setNewAuthor({...newAuthor,description:e.target.value})} /></div>
-            <div className="form-group"><label>头像</label><input type="file" accept="image/*" onChange={e=>setNewAuthorAvatar(e.target.files[0]||null)} style={{padding:'7px 10px'}} /></div>
-          </div>
-          <button className="btn btn-primary" onClick={addAuthor} disabled={uploadingImage}>{uploadingImage?'上传中...':'添加'}</button>
-        </div>
-        <div className="admin-section">
-          <h3>📋 作者列表 ({authors.length})</h3>
-          {authors.map(a=>(
-            <div key={a.id} style={{background:'var(--bg-secondary)',border:'1px solid var(--border)',borderRadius:8,padding:12,marginBottom:8}}>
-              {editingAuthor?.id===a.id?(
-                <div>
-                  <div className="form-row">
-                    <div className="form-group"><label>名称</label><input type="text" value={editingAuthor.name} onChange={e=>setEditingAuthor({...editingAuthor,name:e.target.value})}/></div>
-                    <div className="form-group"><label>Slug</label><input type="text" value={editingAuthor.slug} onChange={e=>setEditingAuthor({...editingAuthor,slug:e.target.value.replace(/\s/g,'')})}/></div>
-                    <div className="form-group"><label>简介</label><input type="text" value={editingAuthor.description||''} onChange={e=>setEditingAuthor({...editingAuthor,description:e.target.value})}/></div>
-                  </div>
-                  <div style={{display:'flex',gap:6}}><button className="btn btn-primary btn-small" onClick={saveAuthorEdit}>保存</button><button className="btn btn-small" onClick={()=>setEditingAuthor(null)} style={{color:'var(--text-muted)',border:'1px solid var(--border)'}}>取消</button></div>
-                </div>
-              ):(
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-                  <div style={{display:'flex',alignItems:'center',gap:10}}>
-                    {a.avatar_url?<img src={a.avatar_url} alt="" style={{width:36,height:36,borderRadius:'50%',objectFit:'cover',border:'2px solid var(--accent)'}}/>:<div style={{width:36,height:36,borderRadius:'50%',background:'rgba(30,204,96,0.1)',border:'2px solid var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>{a.name.charAt(0)}</div>}
-                    <div><div style={{fontWeight:600}}>{a.name}</div><div style={{fontSize:11,color:'var(--text-muted)'}}>/{a.slug} · {guns.filter(g=>g.author_id===a.id).length}枪</div></div>
-                  </div>
-                  <div style={{display:'flex',gap:5}}>
-                    <label className="btn btn-small" style={{cursor:'pointer',color:'var(--text-secondary)',border:'1px solid var(--border)'}}>📷<input type="file" accept="image/*" style={{display:'none'}} onChange={e=>{if(e.target.files[0])updateAuthorAvatar(a.id,e.target.files[0])}}/></label>
-                    <button className="btn btn-success btn-small" onClick={()=>setEditingAuthor({...a})}>✏️</button>
-                    <button className="btn btn-danger btn-small" onClick={()=>deleteAuthor(a.id,a.name)}>删</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </>)}
-
-      {/* 枪械 - 超管完整版 */}
-      {tab==='guns'&&(<>
-        <div className="admin-section">
-          <h3>👤 选择作者</h3>
-          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{authors.map(a=>(<button key={a.id} className={`filter-chip ${selectedAuthorId===a.id?'active':''}`} onClick={()=>{setSelectedAuthorId(a.id);setSelectedGunId('')}}>{a.name} ({guns.filter(g=>g.author_id===a.id).length})</button>))}</div>
-        </div>
-        {selAuthor&&(<>
-          <div className="admin-section">
-            <h3>➕ 给「{selAuthor.name}」添加枪械</h3>
-            <div className="form-row">
-              <div className="form-group" style={{position:'relative'}}>
-                <label>搜索枪械</label>
-                <input type="text" value={superGunName} onChange={e=>{setSuperGunName(e.target.value);searchCatalog(e.target.value)}} placeholder="输入枪名搜索..." onFocus={()=>{if(catalogResults.length) setShowCatalog(true)}}/>
-                {showCatalog&&catalogResults.length>0&&(
-                  <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:50,background:'var(--bg-card)',border:'1px solid var(--accent)',borderRadius:8,maxHeight:250,overflowY:'auto',boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}}>
-                    {catalogResults.map(item=>(
-                      <div key={item.object_id} onClick={()=>superSelectFromCatalog(item)} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',cursor:'pointer',borderBottom:'1px solid var(--border)'}}
-                        onMouseEnter={e=>e.currentTarget.style.background='rgba(32,232,112,0.06)'}
-                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                        {item.pic&&<img src={item.pic} alt="" style={{width:36,height:36,objectFit:'contain',borderRadius:6,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',padding:2}}/>}
-                        <div style={{flex:1}}><div style={{fontWeight:600,fontSize:13}}>{item.object_name}</div><div style={{fontSize:10,color:'var(--text-muted)'}}>{item.second_class_cn}</div></div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="form-group"><label>分类</label><select value={superGunCat} onChange={e=>setSuperGunCat(e.target.value)}>{ALL_CATS.map(c=><option key={c}>{c}</option>)}</select></div>
-              <div className="form-group"><label>图片</label>{superGunImageUrl?(<div style={{display:'flex',alignItems:'center',gap:8}}><img src={superGunImageUrl} alt="" style={{width:40,height:40,objectFit:'contain',borderRadius:6,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',border:'1px solid var(--accent)',padding:2}}/><span style={{fontSize:12,color:'var(--accent)'}}>✅</span><button onClick={()=>setSuperGunImageUrl('')} style={{background:'none',border:'none',color:'var(--text-muted)',cursor:'pointer'}}>✕</button></div>):<input type="file" accept="image/*" onChange={e=>setSuperGunImage(e.target.files[0]||null)} style={{padding:'7px 10px'}}/>}</div>
-            </div>
-            <button className="btn btn-primary" onClick={superAddGun} disabled={uploadingImage}>{uploadingImage?'上传中...':'添加'}</button>
-          </div>
-          <div className="admin-section">
-            <h3>📋 {selAuthor.name} 的枪械 ({authorGuns.length})</h3>
-            {authorGuns.map(gun=>(
-              <div key={gun.id} className="admin-gun-item" style={selectedGunId===gun.id?{borderColor:'var(--accent-dim)'}:{}}>
-                <div style={{display:'flex',alignItems:'center',gap:8,flex:1,minWidth:0}}>
-                  {gun.image_url?<img src={gun.image_url} alt="" style={{width:36,height:36,objectFit:'contain',borderRadius:5,background:'linear-gradient(135deg,#1a2a3a,#1e3040)'}}/>:<span>🔫</span>}
-                  <div><div style={{fontWeight:600,fontSize:13}}>{gun.name}</div><div style={{fontSize:10,color:'var(--text-muted)'}}>{gun.category} · {gun.variants.length}配置</div></div>
-                </div>
-                <div style={{display:'flex',gap:5,flexShrink:0}}>
-                  <label className="btn btn-small" style={{cursor:'pointer',color:'var(--text-secondary)',border:'1px solid var(--border)'}}>📷<input type="file" accept="image/*" style={{display:'none'}} onChange={e=>{if(e.target.files[0])updateGunImage(gun.id,e.target.files[0])}}/></label>
-                  <button className="btn btn-success btn-small" onClick={()=>setSelectedGunId(gun.id)}>管理</button>
-                  <button className="btn btn-danger btn-small" onClick={()=>deleteGun(gun.id,gun.name)}>删</button>
-                </div>
-              </div>
-            ))}
-          </div>
-          {selectedGun && <VariantTable gun={selectedGun} />}
-        </>)}
-      </>)}
 
       {/* 密码 */}
       {tab==='passwords'&&(<>
@@ -763,7 +844,10 @@ function Admin({ isAdmin, setIsAdmin }) {
       {/* 改枪码审核 */}
       {tab==='codereview'&&(<>
         <div className="admin-section">
-          <h3>📋 待审核改枪码 ({pendingCodes.length})</h3>
+          <h3 style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+            <span>📋 待审核改枪码 ({pendingCodes.length})</span>
+            {pendingCodes.length > 0 && <button className="btn btn-success btn-small" onClick={approveAllCodes}>✅ 一键全部通过</button>}
+          </h3>
           {pendingCodes.length === 0 ? <p style={{color:'var(--text-muted)',fontSize:13,textAlign:'center',padding:20}}>没有待审核的改枪码</p> : (
             <div style={{display:'grid',gap:8}}>
               {pendingCodes.map(v => (
@@ -790,7 +874,10 @@ function Admin({ isAdmin, setIsAdmin }) {
         {/* 待审核资料修改 */}
         {pendingProfiles.length > 0 && (
           <div className="admin-section">
-            <h3>👤 待审核资料修改 ({pendingProfiles.length})</h3>
+            <h3 style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+              <span>👤 待审核资料修改 ({pendingProfiles.length})</span>
+              {pendingProfiles.length > 0 && <button className="btn btn-success btn-small" onClick={approveAllProfiles}>✅ 一键全部通过</button>}
+            </h3>
             <div style={{display:'grid',gap:8}}>
               {pendingProfiles.map(p=>(
                 <div key={p.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 14px',background:'var(--bg-secondary)',border:'1px solid rgba(224,160,48,0.2)',borderRadius:10,flexWrap:'wrap'}}>
@@ -857,93 +944,181 @@ function Admin({ isAdmin, setIsAdmin }) {
         </div>
       </>)}
 
-      {/* 主播改枪码管理 */}
+      {/* 主播改枪码管理 - 重新设计 */}
       {tab==='streamers'&&(<>
-        {/* 手动添加 */}
+        {/* 添加新主播 */}
         <div className="admin-section">
-          <h3>➕ 添加主播改枪码</h3>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-            <div className="form-group" style={{margin:0}}>
-              <label>方案名称 *</label>
-              <input type="text" value={customStreamer.name} onChange={e=>setCustomStreamer({...customStreamer,name:e.target.value})} placeholder="如：M14 全程一枪流" />
-            </div>
-            <div className="form-group" style={{margin:0}}>
-              <label>主播/作者名 *</label>
-              <input type="text" value={customStreamer.author_nickname} onChange={e=>setCustomStreamer({...customStreamer,author_nickname:e.target.value})} placeholder="主播昵称" />
-            </div>
+          <h3>➕ 添加新主播</h3>
+          <div className="form-row">
+            <div className="form-group"><label>主播名称 *</label><input type="text" value={newStreamerForm.nickname} onChange={e=>setNewStreamerForm({...newStreamerForm,nickname:e.target.value})} placeholder="主播昵称" /></div>
+            <div className="form-group"><label>头像</label><input type="file" accept="image/*" onChange={e=>setNewStreamerForm({...newStreamerForm,avatar:e.target.files[0]||null})} style={{padding:'7px 10px'}} /></div>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBottom:10}}>
-            <div className="form-group" style={{margin:0}}>
-              <label>枪械名称</label>
-              <input type="text" value={customStreamer.arms_name} onChange={e=>setCustomStreamer({...customStreamer,arms_name:e.target.value})} placeholder="M14射手步枪" />
-            </div>
-            <div className="form-group" style={{margin:0}}>
-              <label>枪械类型</label>
-              <select value={customStreamer.arms_category} onChange={e=>setCustomStreamer({...customStreamer,arms_category:e.target.value})} style={{width:'100%',padding:'10px 12px',background:'var(--bg-secondary)',border:'1px solid var(--border)',borderRadius:6,color:'var(--text-primary)',fontSize:14}}>
-                {['突击步枪','战斗步枪','射手步枪','冲锋枪','机枪','狙击步枪','连狙','霰弹枪','手枪','弓弩'].map(c=><option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="form-group" style={{margin:0}}>
-              <label>改枪价格</label>
-              <input type="text" value={customStreamer.price} onChange={e=>setCustomStreamer({...customStreamer,price:e.target.value})} placeholder="如 85000" />
-            </div>
-          </div>
-          <div className="form-group" style={{margin:'0 0 10px 0'}}>
-            <label>改枪码 *</label>
-            <input type="text" value={customStreamer.solution_code} onChange={e=>setCustomStreamer({...customStreamer,solution_code:e.target.value})} placeholder="粘贴改枪码" />
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-            <div className="form-group" style={{margin:0}}>
-              <label>主播头像</label>
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
-                {(customStreamerAvatar || customStreamer.author_avatar) && (
-                  <img src={customStreamerAvatar ? URL.createObjectURL(customStreamerAvatar) : customStreamer.author_avatar} alt="" style={{width:32,height:32,borderRadius:'50%',objectFit:'cover'}} />
-                )}
-                <input type="file" accept="image/*" onChange={e=>{if(e.target.files?.[0])setCustomStreamerAvatar(e.target.files[0]);}} style={{fontSize:12}} />
-              </div>
-            </div>
-            <div className="form-group" style={{margin:0}}>
-              <label>备注说明</label>
-              <input type="text" value={customStreamer.author_comment} onChange={e=>setCustomStreamer({...customStreamer,author_comment:e.target.value})} placeholder="选填" />
-            </div>
-          </div>
-          <button className="btn btn-primary" onClick={addCustomStreamer}>➕ 添加</button>
+          <button className="btn btn-primary" onClick={addNewStreamer}>添加</button>
         </div>
 
-        {/* 管理列表 */}
+        {/* 主播列表 - 拖动排序 */}
         <div className="admin-section">
-          <h3>🎙️ 改枪码管理 ({officialCodes.length})</h3>
+          <h3>🎙️ 选择主播 <span style={{fontSize:12,fontWeight:400,color:'var(--text-muted)'}}>拖动卡片排序</span></h3>
           <div className="search-bar" style={{marginBottom:14,flex:'none'}}>
             <span className="search-icon">🔍</span>
-            <input placeholder="搜索枪名、作者、方案名..." value={streamerSearch} onChange={e=>setStreamerSearch(e.target.value)} />
+            <input placeholder="搜索主播名..." value={streamerSearch} onChange={e=>setStreamerSearch(e.target.value)} />
           </div>
-          <div style={{display:'grid',gap:6}}>
-            {officialCodes.filter(c=>{
-              if(!streamerSearch.trim())return true;
-              const s=streamerSearch.toLowerCase();
-              return c.name?.toLowerCase().includes(s)||c.author_nickname?.toLowerCase().includes(s)||c.arms_name?.toLowerCase().includes(s);
-            }).map(c=>(
-              <div key={c.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:c.is_hidden?'rgba(224,72,72,0.04)':'var(--bg-secondary)',border:`1px solid ${c.is_hidden?'rgba(224,72,72,0.2)':'var(--border)'}`,borderRadius:8,flexWrap:'wrap'}}>
-                {c.author_avatar && <img src={c.author_avatar} alt="" style={{width:24,height:24,borderRadius:'50%',objectFit:'cover',flexShrink:0}} />}
-                {c.arms_pic && <img src={c.arms_pic} alt="" style={{width:36,height:26,objectFit:'contain',borderRadius:5,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',flexShrink:0}} />}
-                <div style={{flex:1,minWidth:120}}>
-                  <div style={{fontSize:13,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                    {c.name}
-                    {c.is_hidden && <span style={{marginLeft:6,fontSize:10,color:'#e04848',fontWeight:600}}>已下架</span>}
-                    {c.source==='custom' && <span style={{marginLeft:6,fontSize:10,padding:'1px 5px',borderRadius:4,background:'rgba(24,160,208,0.12)',color:'#18a0d0',fontWeight:600}}>自定义</span>}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',gap:10}}>
+            {streamersList.filter(s => !streamerSearch.trim() || s.name.toLowerCase().includes(streamerSearch.toLowerCase())).map((s,idx)=>(
+              <div key={s.name}
+                draggable
+                onDragStart={()=>setDragIdx(idx)}
+                onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderColor='var(--accent)';}}
+                onDragLeave={e=>{e.currentTarget.style.borderColor=selectedStreamerName===s.name?'var(--accent)':'var(--border)';}}
+                onDrop={e=>{e.preventDefault();e.currentTarget.style.borderColor=selectedStreamerName===s.name?'var(--accent)':'var(--border)';handleStreamerDrop(idx);}}
+                onDragEnd={()=>setDragIdx(null)}
+                style={{
+                  background: selectedStreamerName===s.name ? 'rgba(32,232,112,0.06)' : 'var(--bg-secondary)',
+                  border:`2px solid ${selectedStreamerName===s.name ? 'var(--accent)' : 'var(--border)'}`,
+                  borderRadius:12,padding:14,cursor:'grab',
+                  opacity: dragIdx===idx ? 0.5 : 1,
+                  transition:'border-color 0.15s, opacity 0.15s',
+                }}>
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10,cursor:'pointer'}} onClick={()=>setSelectedStreamerName(selectedStreamerName===s.name?'':s.name)}>
+                  {s.avatar?<img src={s.avatar} alt="" style={{width:44,height:44,borderRadius:'50%',objectFit:'cover',border:`2px solid ${selectedStreamerName===s.name?'var(--accent)':'var(--border)'}`,flexShrink:0}}/>
+                  :<div style={{width:44,height:44,borderRadius:'50%',background:'rgba(32,232,112,0.15)',border:`2px solid ${selectedStreamerName===s.name?'var(--accent)':'var(--border)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,fontWeight:700,color:'var(--accent)',flexShrink:0}}>{s.name.charAt(0)}</div>}
+                  <div style={{minWidth:0,flex:1}}>
+                    <div style={{fontWeight:700,fontSize:15}}>{s.name}</div>
+                    <div style={{fontSize:11,color:'var(--text-muted)'}}>{s.count}个方案{s.hiddenCount>0?` · ${s.hiddenCount}已下架`:''}</div>
                   </div>
-                  <div style={{fontSize:11,color:'var(--text-muted)'}}>{c.author_nickname} · {c.arms_category}{c.price ? ` · ${c.price}` : ''}</div>
                 </div>
-                <div style={{display:'flex',gap:4,flexShrink:0}}>
-                  <button className="btn btn-small" style={{color:c.is_hidden?'#20e870':'#e0a030',border:`1px solid ${c.is_hidden?'rgba(32,232,112,0.25)':'rgba(224,160,48,0.25)'}`}} onClick={()=>toggleCodeHidden(c.id,!c.is_hidden)}>
-                    {c.is_hidden?'上架':'下架'}
-                  </button>
-                  <button className="btn btn-danger btn-small" onClick={()=>deleteOfficialCode(c.id,c.name)}>删除</button>
+                <div style={{display:'flex',gap:8,marginBottom:10}}>
+                  <div style={{flex:1,background:'var(--bg-primary)',borderRadius:8,padding:'6px 10px',textAlign:'center'}}>
+                    <div style={{fontSize:10,color:'var(--text-muted)'}}>总使用</div>
+                    <div style={{fontSize:14,fontWeight:700,color:'var(--accent)'}}>{s.apply>=10000?`${(s.apply/10000).toFixed(1)}w`:s.apply.toLocaleString()}</div>
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                  <label className="btn btn-small" style={{cursor:'pointer',color:'var(--text-secondary)',border:'1px solid var(--border)',fontSize:11}}>📷<input type="file" accept="image/*" style={{display:'none'}} onChange={e=>{if(e.target.files[0])updateStreamerAvatar(s.name,e.target.files[0])}}/></label>
+                  {s.count > 0 && (s.hiddenCount < s.count ? (
+                    <button className="btn btn-small" style={{color:'#e0a030',border:'1px solid rgba(224,160,48,0.25)',fontSize:11}} onClick={()=>toggleStreamerHidden(s.name,true)}>下架</button>
+                  ) : (
+                    <button className="btn btn-small" style={{color:'#20e870',border:'1px solid rgba(32,232,112,0.25)',fontSize:11}} onClick={()=>toggleStreamerHidden(s.name,false)}>上架</button>
+                  ))}
+                  <button className="btn btn-small" style={{color:'#18a0d0',border:'1px solid rgba(24,160,208,0.25)',fontSize:11}} onClick={()=>setSelectedStreamerName(s.name)}>{selectedStreamerName===s.name?'收起':'管理'}</button>
+                  <button className="btn btn-small" style={{color:'#e04848',border:'1px solid rgba(224,72,72,0.25)',fontSize:11}} onClick={()=>deleteStreamerAll(s.name)}>删除</button>
                 </div>
               </div>
             ))}
+            {streamersList.length===0&&<p style={{color:'var(--text-muted)',fontSize:13,textAlign:'center',padding:20,gridColumn:'1/-1'}}>暂无主播数据，请先添加主播</p>}
           </div>
         </div>
+
+        {/* 选中主播后：添加改枪码 + 管理列表 */}
+        {selectedStreamerName&&(<>
+          <div className="admin-section">
+            <h3>➕ 给「{selectedStreamerName}」添加改枪码</h3>
+            <div className="form-row">
+              <div className="form-group"><label>方案名称 *</label><input type="text" value={customStreamer.name} onChange={e=>setCustomStreamer({...customStreamer,name:e.target.value})} placeholder="如：M14 全程一枪流" /></div>
+              <div className="form-group" style={{position:'relative'}}>
+                <label>搜索枪械 *</label>
+                <input type="text" value={streamerCodeSearch} onChange={e=>searchStreamerCatalog(e.target.value)} placeholder="输入枪名搜索..." onFocus={()=>{if(streamerCatalogResults.length)setShowStreamerCatalog(true)}}/>
+                {showStreamerCatalog&&streamerCatalogResults.length>0&&(
+                  <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:50,background:'var(--bg-card)',border:'1px solid var(--accent)',borderRadius:8,maxHeight:250,overflowY:'auto',boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}}>
+                    {streamerCatalogResults.map(item=>(
+                      <div key={item.object_id} onClick={()=>selectStreamerGun(item)} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',cursor:'pointer',borderBottom:'1px solid var(--border)'}}
+                        onMouseEnter={e=>e.currentTarget.style.background='rgba(32,232,112,0.06)'}
+                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                        {item.pic&&<img src={item.pic} alt="" style={{width:36,height:36,objectFit:'contain',borderRadius:6,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',padding:2}}/>}
+                        <div style={{flex:1}}><div style={{fontWeight:600,fontSize:13}}>{item.object_name}</div><div style={{fontSize:10,color:'var(--text-muted)'}}>{item.second_class_cn}</div></div>
+                      </div>
+                    ))}
+                    <div onClick={()=>setShowStreamerCatalog(false)} style={{padding:8,textAlign:'center',fontSize:12,color:'var(--text-muted)',cursor:'pointer'}}>关闭</div>
+                  </div>
+                )}
+              </div>
+              <div className="form-group"><label>改枪价格</label><input type="text" value={customStreamer.price} onChange={e=>setCustomStreamer({...customStreamer,price:e.target.value})} placeholder="如 85000" /></div>
+            </div>
+            {customStreamer.arms_pic && <div style={{marginBottom:10,display:'flex',alignItems:'center',gap:8}}><img src={customStreamer.arms_pic} alt="" style={{width:40,height:40,objectFit:'contain',borderRadius:6,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',border:'1px solid var(--accent)',padding:2}}/><span style={{fontSize:12,color:'var(--accent)'}}>✅ {customStreamer.arms_name} · {customStreamer.arms_category}</span></div>}
+            <div className="form-group" style={{margin:'0 0 10px 0'}}>
+              <label>改枪码 *</label>
+              <input type="text" value={customStreamer.solution_code} onChange={e=>setCustomStreamer({...customStreamer,solution_code:e.target.value})} placeholder="粘贴改枪码" />
+            </div>
+            <div className="form-row">
+              <div className="form-group"><label>备注说明</label><input type="text" value={customStreamer.author_comment} onChange={e=>setCustomStreamer({...customStreamer,author_comment:e.target.value})} placeholder="选填" /></div>
+              <div className="form-group"><label>头像（可选，覆盖）</label><input type="file" accept="image/*" onChange={e=>{if(e.target.files?.[0])setCustomStreamerAvatar(e.target.files[0]);}} style={{padding:'7px 10px'}} /></div>
+            </div>
+            <button className="btn btn-primary" onClick={addStreamerCode}>➕ 添加</button>
+          </div>
+
+          {/* 该主播的改枪码列表 */}
+          <div className="admin-section">
+            <h3>📋 {selectedStreamerName} 的改枪码 ({selectedStreamerCodes.length})</h3>
+            {selectedStreamerCodes.length === 0 ? (
+              <p style={{color:'var(--text-muted)',textAlign:'center',padding:30}}>还没有改枪码，在上方添加</p>
+            ) : (
+              <div style={{display:'grid',gap:6}}>
+                {selectedStreamerCodes.map(c=>(
+                  <div key={c.id} style={{background:c.is_hidden?'rgba(224,72,72,0.04)':'var(--bg-secondary)',border:`1px solid ${c.is_hidden?'rgba(224,72,72,0.2)':'var(--border)'}`,borderRadius:8,padding:'10px 12px'}}>
+                    {editingCode?.id === c.id ? (
+                      /* 编辑模式 */
+                      <div style={{display:'grid',gap:8}}>
+                        <div className="form-row">
+                          <div className="form-group"><label>方案名称</label><input type="text" value={editingCode.name} onChange={e=>setEditingCode({...editingCode,name:e.target.value})} /></div>
+                          <div className="form-group" style={{position:'relative'}}>
+                            <label>搜索枪械</label>
+                            <input type="text" value={editingCode._gunSearch||''} onChange={e=>{setEditingCode({...editingCode,_gunSearch:e.target.value});searchEditCatalog(e.target.value);}} placeholder="输入枪名搜索..." onFocus={()=>{if(editCodeCatalog.length)setShowEditCatalog(true)}} />
+                            {showEditCatalog&&editCodeCatalog.length>0&&(
+                              <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:50,background:'var(--bg-card)',border:'1px solid var(--accent)',borderRadius:8,maxHeight:200,overflowY:'auto',boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}}>
+                                {editCodeCatalog.map(item=>(
+                                  <div key={item.object_id} onClick={()=>selectEditGun(item)} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',cursor:'pointer',borderBottom:'1px solid var(--border)'}}
+                                    onMouseEnter={e=>e.currentTarget.style.background='rgba(32,232,112,0.06)'}
+                                    onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                    {item.pic&&<img src={item.pic} alt="" style={{width:30,height:30,objectFit:'contain',borderRadius:5,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',padding:2}}/>}
+                                    <div><div style={{fontWeight:600,fontSize:12}}>{item.object_name}</div><div style={{fontSize:10,color:'var(--text-muted)'}}>{item.second_class_cn}</div></div>
+                                  </div>
+                                ))}
+                                <div onClick={()=>setShowEditCatalog(false)} style={{padding:6,textAlign:'center',fontSize:11,color:'var(--text-muted)',cursor:'pointer'}}>关闭</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {editingCode.arms_pic && <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--accent)'}}>
+                          <img src={editingCode.arms_pic} alt="" style={{width:32,height:32,objectFit:'contain',borderRadius:5,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',padding:2}}/>
+                          {editingCode.arms_name} · {editingCode.arms_category}
+                        </div>}
+                        <div className="form-group"><label>改枪码</label><input type="text" value={editingCode.solution_code} onChange={e=>setEditingCode({...editingCode,solution_code:e.target.value})} /></div>
+                        <div className="form-row">
+                          <div className="form-group"><label>价格</label><input type="text" value={editingCode.price||''} onChange={e=>setEditingCode({...editingCode,price:e.target.value})} /></div>
+                          <div className="form-group"><label>备注</label><input type="text" value={editingCode.author_comment||''} onChange={e=>setEditingCode({...editingCode,author_comment:e.target.value})} /></div>
+                        </div>
+                        <div style={{display:'flex',gap:6}}>
+                          <button className="btn btn-primary btn-small" onClick={saveEditCode}>保存</button>
+                          <button className="btn btn-small" style={{color:'var(--text-muted)',border:'1px solid var(--border)'}} onClick={()=>{setEditingCode(null);setShowEditCatalog(false);}}>取消</button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* 显示模式 */
+                      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                        {c.arms_pic && <img src={c.arms_pic} alt="" style={{width:36,height:26,objectFit:'contain',borderRadius:5,background:'linear-gradient(135deg,#1a2a3a,#1e3040)',flexShrink:0}} />}
+                        <div style={{flex:1,minWidth:120}}>
+                          <div style={{fontSize:13,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                            {c.name}
+                            {c.is_hidden && <span style={{marginLeft:6,fontSize:10,color:'#e04848',fontWeight:600}}>已下架</span>}
+                            {c.source==='custom' && <span style={{marginLeft:6,fontSize:10,padding:'1px 5px',borderRadius:4,background:'rgba(24,160,208,0.12)',color:'#18a0d0',fontWeight:600}}>自定义</span>}
+                          </div>
+                          <div style={{fontSize:11,color:'var(--text-muted)'}}>{c.arms_name} · {c.arms_category}{c.price ? ` · ${c.price}` : ''}{c.apply_num ? ` · 使用${c.apply_num}` : ''}</div>
+                        </div>
+                        <div style={{display:'flex',gap:4,flexShrink:0}}>
+                          <button className="btn btn-small" style={{color:'#18a0d0',border:'1px solid rgba(24,160,208,0.25)'}} onClick={()=>setEditingCode({...c,_gunSearch:c.arms_name})}>编辑</button>
+                          <button className="btn btn-small" style={{color:c.is_hidden?'#20e870':'#e0a030',border:`1px solid ${c.is_hidden?'rgba(32,232,112,0.25)':'rgba(224,160,48,0.25)'}`}} onClick={()=>toggleCodeHidden(c.id,!c.is_hidden)}>
+                            {c.is_hidden?'上架':'下架'}
+                          </button>
+                          <button className="btn btn-danger btn-small" onClick={()=>deleteOfficialCode(c.id,c.name)}>删除</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>)}
       </>)}
 
       {/* 审核 */}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 const TABS = [
   { key: 'privacy', label: '🔒 隐私政策' },
@@ -15,6 +16,7 @@ function Legal() {
 
   return (
     <div>
+      <SEO title="法律声明" path="/legal" description="有力气的改枪网站的隐私政策、使用条款和Cookie政策。" />
       <h1 className="page-title">📋 法律声明</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>最后更新：2026年3月13日</p>
 

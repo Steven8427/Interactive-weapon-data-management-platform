@@ -2,6 +2,19 @@
   command = "npm run build"
   publish = "build"
 
+# Cache static assets
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache pre-rendered HTML briefly so crawlers get fresh content
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# SPA fallback - must come last
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
+import SEO from '../components/SEO';
 
 function Landing() {
   const [stats, setStats] = useState({ codes: 0, streamers: 0, guns: 0, variants: 0 });
@@ -41,6 +42,7 @@ function Landing() {
 
   return (
     <div>
+      <SEO path="/" description="有力气的改枪网站 - 三角洲行动(Delta Force)最全工具站：官方热门改枪码、主播同款改枪码、玩家社区分享、每日密码查询、特勤处制造利润计算、物品价格走势图、卡战备推荐系统。" />
       {/* Hero */}
       <div style={{ textAlign: 'center', padding: '40px 20px 30px', background: 'linear-gradient(180deg, rgba(32,232,112,0.06) 0%, transparent 100%)', borderRadius: 16, marginBottom: 28 }}>
         <img src="/logo.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 12 }} onError={e => e.target.style.display = 'none'} />

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import SEO from '../components/SEO';
 
 const GRADE_COLOR = { 6: '#e04848', 5: '#ffc040', 4: '#c060e0', 3: '#40a0e0', 2: '#40d070', 1: '#c0c8d0', 0: '#6080a0' };
 const GRADE_NAME = { 6: '传说', 5: '史诗', 4: '稀有', 3: '精良', 2: '普通', 1: '简陋', 0: '无' };
@@ -99,6 +100,7 @@ function ItemCatalog() {
 
   return (
     <div>
+      <SEO title="物品图鉴" path="/items" description="三角洲行动全物品图鉴百科，收录所有枪械、配件、护甲、装备的详细信息和价格。" />
       <h1 className="page-title">📖 物品图鉴</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>三角洲行动所有物品信息 · {items.length} 个物品</p>
 

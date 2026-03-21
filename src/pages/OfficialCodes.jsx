@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import SEO from '../components/SEO';
 
 const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
 const SLOT_NAME = { "1":"弹匣", "2":"枪口", "3":"下挂/握把", "5":"枪托", "6":"瞄具", "8":"激光指示器", "11":"护木", "17":"导轨配件", "20":"导轨配件", "32":"导轨配件", "34":"导轨配件", "35":"导轨配件", "44":"弹鼓" };
@@ -75,6 +76,7 @@ function OfficialCodes() {
 
   return (
     <div>
+      <SEO title="官方热门改枪码" path="/official" description="三角洲行动官方社区热门改枪码，按使用量排行，含完整配件列表和价格。" />
       <h1 className="page-title">🔥 官方热门改枪码</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
         来自官方社区 · {codes.length} 个方案 · 点击展开查看配件 · 同步：{formatTime(lastSync)}

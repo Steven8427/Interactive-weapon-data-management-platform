@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SEO from '../components/SEO';
 
 const MAP_URL = 'https://df.qq.com/cp/a20240729directory/';
 
@@ -8,6 +9,7 @@ function MapTool() {
 
   return (
     <div>
+      <SEO title="官方地图工具" path="/map" description="三角洲行动官方互动地图，查看物资点、出生点、撤离点、首领坐标等关键信息。" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
           <h1 className="page-title">官方地图工具</h1>

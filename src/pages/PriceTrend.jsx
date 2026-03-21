@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
+import SEO from '../components/SEO';
 
 const CATEGORIES = [
   { key: 'all', name: '全部', icon: '📦' },
@@ -189,6 +190,7 @@ function PriceTrend() {
 
   return (
     <div>
+      <SEO title="价格走势图" path="/prices" description="三角洲行动物品价格走势图，实时追踪枪械、护甲、配件等物品的历史价格变化。" />
       <h1 className="page-title">价格走势图</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
         更新日期：{formatTime(lastUpdate) || '暂无数据'} · 共 {todayPrices.length} 个物品

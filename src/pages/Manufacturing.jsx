@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
+import SEO from '../components/SEO';
 
 const PLACES = [
   { key: 'all', name: '全部', icon: '📦' },
@@ -143,6 +144,7 @@ function Manufacturing() {
 
   return (
     <div>
+      <SEO title="特勤处制造利润" path="/profit" description="三角洲行动特勤处制造利润计算器，实时制造成本与收益分析，找到最赚钱的制造方案。" />
       <h1 className="page-title">特勤处制造利润</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
         更新时间：{formatTime(lastUpdate)} · 共 {items.length} 个制造方案
