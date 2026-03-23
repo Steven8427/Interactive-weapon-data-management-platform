@@ -188,16 +188,6 @@ function Streamers() {
                   <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{s.codes.length} 个方案</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                <div style={{ flex: 1, background: 'var(--bg-secondary)', borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>总使用</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#e0a030', fontFamily: "'Orbitron', monospace" }}>{formatNum(s.totalApply)}</div>
-                </div>
-                <div style={{ flex: 1, background: 'var(--bg-secondary)', borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>总点赞</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#e04848', fontFamily: "'Orbitron', monospace" }}>{formatNum(s.totalLikes)}</div>
-                </div>
-              </div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                 {s.codes.slice(0, 4).map(c => c.arms_pic ? <img key={c.id} src={c.arms_pic} alt="" style={{ width: 40, height: 28, objectFit: 'contain', borderRadius: 5, background: 'linear-gradient(135deg, #1a2a3a, #1e3040)', border: '1px solid var(--border)', padding: 1 }} /> : null)}
                 {s.codes.length > 4 && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>+{s.codes.length - 4}</span>}
