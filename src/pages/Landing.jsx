@@ -88,6 +88,20 @@ function Landing() {
         </div>
       </div>)}
 
+      {/* 今日最赚 */}
+      {topMfg.length > 0 && (<div style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>💰 今日最赚</h2><Link to="/profit" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>查看全部 →</Link></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+          {topMfg.map(item => (
+            <Link key={item.id} to="/profit" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: 14, textDecoration: 'none', transition: 'border-color 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(32,232,112,0.3)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>{item.item_image && <img src={item.item_image} alt="" style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6, background: 'linear-gradient(135deg, #1a2a3a, #1e3040)' }} onError={e => e.target.style.display = 'none'} />}<div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.item_name}</div></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.place_name} · {item.period}h</span><span style={{ fontSize: 17, fontWeight: 900, color: '#20e870', fontFamily: "'Orbitron', monospace" }}>+{formatPrice(item.profit)}</span></div>
+            </Link>
+          ))}
+        </div>
+      </div>)}
+
       {/* 热门主播 */}
       {topStreamers.length > 0 && (<div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🎙️ 热门主播</h2><Link to="/streamers" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>查看全部 →</Link></div>
@@ -121,19 +135,6 @@ function Landing() {
         </div>
       </div>)}
 
-      {/* 今日最赚 */}
-      {topMfg.length > 0 && (<div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>💰 今日最赚</h2><Link to="/profit" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>查看全部 →</Link></div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-          {topMfg.map(item => (
-            <Link key={item.id} to="/profit" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: 14, textDecoration: 'none', transition: 'border-color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(32,232,112,0.3)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>{item.item_image && <img src={item.item_image} alt="" style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6, background: 'linear-gradient(135deg, #1a2a3a, #1e3040)' }} onError={e => e.target.style.display = 'none'} />}<div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.item_name}</div></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.place_name} · {item.period}h</span><span style={{ fontSize: 17, fontWeight: 900, color: '#20e870', fontFamily: "'Orbitron', monospace" }}>+{formatPrice(item.profit)}</span></div>
-            </Link>
-          ))}
-        </div>
-      </div>)}
     </div>
   );
 }
