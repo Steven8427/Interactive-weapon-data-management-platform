@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 const CATEGORIES = [
   { key: 'all', name: '全部', icon: '📦' },
@@ -27,6 +28,7 @@ const CAT_COLORS = {
 };
 
 function PriceTrend() {
+  const { t } = useT();
   const [todayPrices, setTodayPrices] = useState([]);
   const [historyData, setHistoryData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +138,7 @@ function PriceTrend() {
   function BigChart({ data, color }) {
     if (!data || data.length < 2) return (
       <div style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)', fontSize: 13 }}>
-        需要至少2天数据才能显示走势图<br/>系统每天自动记录价格，过几天就有图了
+        {t('需要至少2天数据才能显示走势图')}<br/>{t('系统每天自动记录价格，过几天就有图了')}
       </div>
     );
 
@@ -186,14 +188,14 @@ function PriceTrend() {
     );
   }
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载价格数据中...</div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载价格数据中...')}</div>;
 
   return (
     <div>
-      <SEO title="价格走势图" path="/prices" description="三角洲行动物品价格走势图，实时追踪枪械、护甲、配件等物品的历史价格变化。" />
-      <h1 className="page-title">价格走势图</h1>
+      <SEO title={t('价格走势图')} path="/prices" description={t('三角洲行动物品价格走势图，实时追踪枪械、护甲、配件等物品的历史价格变化。')} />
+      <h1 className="page-title">{t('价格走势图')}</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
-        更新日期：{formatTime(lastUpdate) || '暂无数据'} · 共 {todayPrices.length} 个物品
+        {t('更新日期：')}{formatTime(lastUpdate) || t('暂无数据')} · {t('共 {n} 个物品', { n: todayPrices.length })}
       </p>
 
       {/* 详情弹窗 */}
@@ -241,7 +243,7 @@ function PriceTrend() {
         {CATEGORIES.map(c => (
           <button key={c.key} className={`filter-chip ${selectedCat === c.key ? 'active' : ''}`}
             onClick={() => setSelectedCat(c.key)}>
-            {c.icon} {c.name}
+            {c.icon} {c.key === 'all' ? t('全部') : c.name}
           </button>
         ))}
       </div>
@@ -249,12 +251,12 @@ function PriceTrend() {
       <div className="search-row">
         <div className="search-bar">
           <span className="search-icon">🔍</span>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索物品名称..." />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('搜索物品名称...')} />
         </div>
         <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-          <option value="price_desc">价格 高→低</option>
-          <option value="price_asc">价格 低→高</option>
-          <option value="name">名称排序</option>
+          <option value="price_desc">{t('价格 高→低')}</option>
+          <option value="price_asc">{t('价格 低→高')}</option>
+          <option value="name">{t('名称排序')}</option>
         </select>
       </div>
 
@@ -262,8 +264,8 @@ function PriceTrend() {
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>📈</div>
-          <p style={{ fontSize: 18, marginBottom: 8 }}>暂无价格数据</p>
-          <p style={{ fontSize: 14 }}>请管理员在后台获取价格数据</p>
+          <p style={{ fontSize: 18, marginBottom: 8 }}>{t('暂无价格数据')}</p>
+          <p style={{ fontSize: 14 }}>{t('请管理员在后台获取价格数据')}</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 6 }}>
@@ -340,9 +342,8 @@ function PriceTrend() {
         border: '1px solid var(--border)', borderRadius: 10,
         fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.8,
       }}>
-        <strong style={{ color: 'var(--text-secondary)' }}>💡 说明：</strong>
-        价格为交易行均价，每天自动更新。点击物品可查看历史走势图。涨跌幅对比前一天数据。
-        数据积累越多，走势图越完整。
+        <strong style={{ color: 'var(--text-secondary)' }}>💡 {t('说明：')}</strong>
+        {t('价格为交易行均价，每天自动更新。点击物品可查看历史走势图。涨跌幅对比前一天数据。数据积累越多，走势图越完整。')}
       </div>
     </div>
   );

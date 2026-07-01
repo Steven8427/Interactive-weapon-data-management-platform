@@ -3,11 +3,13 @@ import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
 const SLOT_NAME = { "1":"弹匣", "2":"枪口", "3":"下挂/握把", "5":"枪托", "6":"瞄具", "8":"激光指示器", "11":"护木", "17":"导轨配件", "20":"导轨配件", "32":"导轨配件", "34":"导轨配件", "35":"导轨配件", "44":"弹鼓" };
 
 function OfficialCodes() {
+  const { t } = useT();
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('全部');
   const [sortBy, setSortBy] = useState('apply');
@@ -44,7 +46,7 @@ function OfficialCodes() {
     return r;
   }, [codes, filterCat, search, sortBy]);
 
-  function copyCode(code, e) { if (e) e.stopPropagation(); navigator.clipboard.writeText(code).then(() => toast.success('改枪码已复制！')).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success('改枪码已复制！'); }); }
+  function copyCode(code, e) { if (e) e.stopPropagation(); navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function formatNum(n) { if (!n) return '0'; if (n >= 10000) return (n/10000).toFixed(1) + 'w'; if (n >= 1000) return (n/1000).toFixed(1) + 'k'; return n.toString(); }
   function formatPrice(n) { if (!n) return '-'; if (n >= 10000) return (n/10000).toFixed(1) + 'w'; return n.toLocaleString(); }
   function formatTime(ts) { if (!ts) return ''; const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
@@ -72,27 +74,27 @@ function OfficialCodes() {
     } catch { return []; }
   }
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载官方改枪码...</div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载官方改枪码...')}</div>;
 
   return (
     <div>
-      <SEO title="官方热门改枪码" path="/official" description="三角洲行动官方社区热门改枪码，按使用量排行，含完整配件列表和价格。" />
-      <h1 className="page-title">🔥 官方热门改枪码</h1>
+      <SEO title={t('官方热门改枪码')} path="/official" description={t('三角洲行动官方社区热门改枪码，按使用量排行，含完整配件列表和价格。')} />
+      <h1 className="page-title">🔥 {t('官方热门改枪码')}</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
-        来自官方社区 · {codes.length} 个方案 · 点击展开查看配件 · 同步：{formatTime(lastSync)}
+        {t('来自官方社区 · {c} 个方案 · 点击展开查看配件 · 同步：{time}', { c: codes.length, time: formatTime(lastSync) })}
       </p>
 
       <div className="filter-bar">
-        {categories.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c}</button>)}
+        {categories.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : c}</button>)}
       </div>
 
       <div className="search-row">
-        <div className="search-bar"><span className="search-icon">🔍</span><input placeholder="搜索枪名、方案名、作者..." value={search} onChange={e => setSearch(e.target.value)} /></div>
+        <div className="search-bar"><span className="search-icon">🔍</span><input placeholder={t('搜索枪名、方案名、作者...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
         <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-          <option value="apply">使用量 高→低</option>
-          <option value="like">点赞 高→低</option>
-          <option value="price_asc">价格 低→高</option>
-          <option value="price_desc">价格 高→低</option>
+          <option value="apply">{t('使用量 高→低')}</option>
+          <option value="like">{t('点赞 高→低')}</option>
+          <option value="price_asc">{t('价格 低→高')}</option>
+          <option value="price_desc">{t('价格 高→低')}</option>
         </select>
       </div>
 
@@ -123,7 +125,7 @@ function OfficialCodes() {
                   </div>
                   <div style={{ flexShrink: 0, textAlign: 'right' }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#e0a030', fontFamily: "'Orbitron', monospace" }}>{formatNum(code.apply_num)}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatNum(code.like_num)} 赞</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('{n} 赞', { n: formatNum(code.like_num) })}</div>
                   </div>
                 </div>
 
@@ -142,10 +144,10 @@ function OfficialCodes() {
               {/* 展开配件详情 */}
               {isExpanded && (
                 <div style={{ borderTop: `1px solid ${catC}25`, padding: '14px 16px', background: 'rgba(0,0,0,0.15)' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 12 }}>🔧 配件列表 ({accessories.length})</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 12 }}>🔧 {t('配件列表')} ({accessories.length})</div>
 
                   {accessories.length === 0 ? (
-                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>此方案无配件数据</p>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('此方案无配件数据')}</p>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
                       {accessories.map((acc, i) => (
@@ -160,7 +162,7 @@ function OfficialCodes() {
                     </div>
                   )}
 
-                  <button onClick={e => copyCode(code.solution_code, e)} className="btn btn-primary" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}>📋 复制改枪码</button>
+                  <button onClick={e => copyCode(code.solution_code, e)} className="btn btn-primary" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}>📋 {t('复制改枪码')}</button>
                 </div>
               )}
             </div>
@@ -169,7 +171,7 @@ function OfficialCodes() {
       </div>
 
       <div style={{ marginTop: 24, padding: 14, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text-muted)' }}>
-        💡 点击卡片展开查看配件详情。点击改枪码直接复制。数据每6小时自动同步。
+        💡 {t('点击卡片展开查看配件详情。点击改枪码直接复制。数据每6小时自动同步。')}
       </div>
     </div>
   );

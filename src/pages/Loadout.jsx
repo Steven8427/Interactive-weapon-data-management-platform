@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 const TIERS = [
   { key: '11w', name: '大坝、长弓机密', budget: '11W', color: '#20e870' },
@@ -17,6 +18,7 @@ const SC = { '枪械拉满':'#e04848', '均衡套装':'#20e870', '胸挂拉满':
 const SI = { '枪械拉满':'🔫', '均衡套装':'⚖️', '胸挂拉满':'🦺', '轻装跑图':'🏃' };
 
 function Loadout() {
+  const { t } = useT();
   const [selectedTier, setSelectedTier] = useState('11w');
   const [viewMode, setViewMode] = useState('strategy');
   const [expandedId, setExpandedId] = useState(null);
@@ -40,8 +42,8 @@ function Loadout() {
   const hasStrategy = presets.some(p => p.tier === selectedTier && p.style === 'strategy');
   const hasGun = presets.some(p => p.tier === selectedTier && p.style === 'gun');
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载战备数据中...</div>;
-  if (!presets.length) return <div><h1 className="page-title">🃏 卡战备系统</h1><div style={{ textAlign:'center', padding:60, color:'var(--text-muted)' }}><div style={{ fontSize:56, marginBottom:16 }}>🃏</div><p>暂无战备数据</p></div></div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载战备数据中...')}</div>;
+  if (!presets.length) return <div><h1 className="page-title">🃏 {t('卡战备系统')}</h1><div style={{ textAlign:'center', padding:60, color:'var(--text-muted)' }}><div style={{ fontSize:56, marginBottom:16 }}>🃏</div><p>{t('暂无战备数据')}</p></div></div>;
 
   function renderCard(p) {
     const budget = p.budget_min || 0;
@@ -57,6 +59,7 @@ function Loadout() {
     if (p.armor_name) items.push({ n: p.armor_name, img: p.armor_image, pr: p.armor_price, g: p.armor_grade, t: '护甲' });
     if (p.chest_name) items.push({ n: p.chest_name, img: p.chest_image, pr: p.chest_price, g: p.chest_grade, t: '胸挂' });
     if (p.backpack_name) items.push({ n: p.backpack_name, img: p.backpack_image, pr: p.backpack_price, g: p.backpack_grade, t: '背包' });
+    // note: item.t below is a category key translated at render via t(it.t)
 
     return (
       <div key={p.id} style={{ background:'var(--bg-card)', border:`1px solid ${sc}20`, borderRadius:14, overflow:'hidden', transition:'border-color 0.2s' }}
@@ -84,8 +87,8 @@ function Loadout() {
                   <div style={{ minWidth:0 }}>
                     <div style={{ fontSize:13, fontWeight:600, color:gc, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{it.n}</div>
                     <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                      <span style={{ fontSize:10, color:'var(--text-muted)' }}>{it.t}</span>
-                      {it.g > 0 && <span style={{ fontSize:9, padding:'0 4px', borderRadius:3, background:`${gc}15`, color:gc, fontWeight:600 }}>{it.g}级</span>}
+                      <span style={{ fontSize:10, color:'var(--text-muted)' }}>{t(it.t)}</span>
+                      {it.g > 0 && <span style={{ fontSize:9, padding:'0 4px', borderRadius:3, background:`${gc}15`, color:gc, fontWeight:600 }}>{t('{n}级', { n: it.g })}</span>}
                     </div>
                   </div>
                   <div style={{ fontSize:12, color:'var(--text-secondary)', fontFamily:"'Orbitron',monospace", flexShrink:0, marginLeft:'auto' }}>{fmtP(it.pr)}</div>
@@ -99,7 +102,7 @@ function Loadout() {
         {accTotal > 0 && (
           <div style={{ borderTop:'1px solid var(--border)', padding:'10px 16px' }}>
             <div onClick={() => setExpandedId(isExp ? null : p.id)} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer' }}>
-              <span style={{ fontSize:13, fontWeight:600, color:'var(--text-secondary)' }}>🔧 推荐配件 ({accessories.length})</span>
+              <span style={{ fontSize:13, fontWeight:600, color:'var(--text-secondary)' }}>🔧 {t('推荐配件')} ({accessories.length})</span>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <span style={{ fontSize:13, fontWeight:700, color:'#18a0d0', fontFamily:"'Orbitron',monospace" }}>{fmtP(accTotal)}</span>
                 <span style={{ fontSize:14, color:'var(--text-muted)', transition:'transform 0.2s', transform:isExp?'rotate(180deg)':'none' }}>▼</span>
@@ -128,21 +131,21 @@ function Loadout() {
         {/* 底部汇总 */}
         <div style={{ display:'flex', justifyContent:'space-between', padding:'12px 16px', borderTop:'1px solid var(--border)', background:'rgba(0,0,0,0.1)', flexWrap:'wrap', gap:8 }}>
           <div>
-            <div style={{ fontSize:10, color:'var(--text-muted)' }}>购买成本</div>
+            <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('购买成本')}</div>
             <div style={{ fontSize:15, fontWeight:900, color:'var(--text-primary)', fontFamily:"'Orbitron',monospace" }}>{fmtW(budget)}</div>
           </div>
           <div>
-            <div style={{ fontSize:10, color:'var(--text-muted)' }}>装备价值</div>
+            <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('装备价值')}</div>
             <div style={{ fontSize:15, fontWeight:900, color:sc, fontFamily:"'Orbitron',monospace" }}>{fmtW(gearValue)}</div>
           </div>
           {accTotal > 0 && (
             <div>
-              <div style={{ fontSize:10, color:'var(--text-muted)' }}>配件价值</div>
+              <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('配件价值')}</div>
               <div style={{ fontSize:15, fontWeight:900, color:'#18a0d0', fontFamily:"'Orbitron',monospace" }}>{fmtW(accTotal)}</div>
             </div>
           )}
           <div style={{ textAlign:'right' }}>
-            <div style={{ fontSize:10, color:'var(--text-muted)' }}>总估值</div>
+            <div style={{ fontSize:10, color:'var(--text-muted)' }}>{t('总估值')}</div>
             <div style={{ fontSize:15, fontWeight:900, color: p.total_price >= budget ? '#20e870' : '#e04848', fontFamily:"'Orbitron',monospace" }}>{fmtW(p.total_price)}</div>
           </div>
         </div>
@@ -152,23 +155,23 @@ function Loadout() {
 
   return (
     <div>
-      <SEO title="卡战备系统" path="/cards" description="三角洲行动卡战备配装推荐，不同预算档位的最优枪械、护甲、装备搭配方案。" />
+      <SEO title={t('卡战备系统')} path="/cards" description={t('三角洲行动卡战备配装推荐，不同预算档位的最优枪械、护甲、装备搭配方案。')} />
       <div style={{ display:'flex', alignItems:'baseline', gap:12, marginBottom:4, flexWrap:'wrap' }}>
-        <h1 className="page-title" style={{ marginBottom:0 }}>🃏 卡战备系统</h1>
-        <span style={{ fontSize:13, color:'var(--text-muted)' }}>更新：{fmtT(lastUpdate)}</span>
+        <h1 className="page-title" style={{ marginBottom:0 }}>🃏 {t('卡战备系统')}</h1>
+        <span style={{ fontSize:13, color:'var(--text-muted)' }}>{t('更新：')}{fmtT(lastUpdate)}</span>
       </div>
-      <p style={{ color:'var(--text-muted)', fontSize:13, marginBottom:20 }}>价格基于交易行实时均价，每小时更新 · 含配件推荐</p>
+      <p style={{ color:'var(--text-muted)', fontSize:13, marginBottom:20 }}>{t('价格基于交易行实时均价，每小时更新 · 含配件推荐')}</p>
 
       {/* 档位 */}
       <div className="hide-scrollbar" style={{ display:'flex', gap:8, marginBottom:16, overflowX:'auto', WebkitOverflowScrolling:'touch', paddingBottom:4 }}>
-        {availTiers.map(t => (
-          <button key={t.key} onClick={() => { setSelectedTier(t.key); setExpandedId(null); }} style={{
-            background: selectedTier === t.key ? `${t.color}18` : 'var(--bg-card)',
-            border: `2px solid ${selectedTier === t.key ? t.color : 'var(--border)'}`,
+        {availTiers.map(tr => (
+          <button key={tr.key} onClick={() => { setSelectedTier(tr.key); setExpandedId(null); }} style={{
+            background: selectedTier === tr.key ? `${tr.color}18` : 'var(--bg-card)',
+            border: `2px solid ${selectedTier === tr.key ? tr.color : 'var(--border)'}`,
             borderRadius:12, padding:'10px 14px', cursor:'pointer', transition:'all 0.2s', textAlign:'center', minWidth:80, flex:'0 0 auto',
           }}>
-            <div style={{ fontFamily:"'Orbitron',monospace", fontSize:18, fontWeight:900, color: selectedTier === t.key ? t.color : 'var(--text-muted)' }}>{t.budget}</div>
-            <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:2, whiteSpace:'nowrap' }}>{t.name}</div>
+            <div style={{ fontFamily:"'Orbitron',monospace", fontSize:18, fontWeight:900, color: selectedTier === tr.key ? tr.color : 'var(--text-muted)' }}>{tr.budget}</div>
+            <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:2, whiteSpace:'nowrap' }}>{t(tr.name)}</div>
           </button>
         ))}
       </div>
@@ -176,8 +179,8 @@ function Loadout() {
       {/* 切换 */}
       {(hasStrategy || hasGun) && (
         <div style={{ display:'flex', gap:8, marginBottom:20 }}>
-          {hasStrategy && <button className={`filter-chip ${viewMode==='strategy'?'active':''}`} onClick={() => { setViewMode('strategy'); setExpandedId(null); }}>⚖️ 策略方案</button>}
-          {hasGun && <button className={`filter-chip ${viewMode==='gun'?'active':''}`} onClick={() => { setViewMode('gun'); setExpandedId(null); }}>🔫 多枪方案</button>}
+          {hasStrategy && <button className={`filter-chip ${viewMode==='strategy'?'active':''}`} onClick={() => { setViewMode('strategy'); setExpandedId(null); }}>⚖️ {t('策略方案')}</button>}
+          {hasGun && <button className={`filter-chip ${viewMode==='gun'?'active':''}`} onClick={() => { setViewMode('gun'); setExpandedId(null); }}>🔫 {t('多枪方案')}</button>}
         </div>
       )}
 
@@ -186,14 +189,14 @@ function Loadout() {
         {tierData.map(p => renderCard(p))}
       </div>
 
-      {tierData.length === 0 && <div style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>该档位暂无{viewMode==='strategy'?'策略':'多枪'}方案</div>}
+      {tierData.length === 0 && <div style={{ textAlign:'center', padding:40, color:'var(--text-muted)' }}>{t('该档位暂无{type}方案', { type: viewMode==='strategy'?t('策略'):t('多枪') })}</div>}
 
       <div style={{ marginTop:24, padding:14, background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:10, fontSize:13, color:'var(--text-muted)', lineHeight:1.8 }}>
-        <strong style={{ color:'var(--text-secondary)' }}>💡 说明：</strong>
-        <strong>策略方案</strong>：🔫枪械拉满 / ⚖️均衡 / 🦺胸挂拉满 / 🏃轻装跑图（少配件轻装，适合跑图丢包场景）。
-        <strong>多枪方案</strong>：不同枪械+最优装备组合。
-        🔧<strong>配件</strong>：点击展开查看推荐配件，价值已计入总估值。
-        品级：<span style={{ color:'#ffc040' }}> ■5级</span><span style={{ color:'#c060e0' }}> ■4级</span><span style={{ color:'#40a0e0' }}> ■3级</span><span style={{ color:'#40d070' }}> ■2级</span>
+        <strong style={{ color:'var(--text-secondary)' }}>💡 {t('说明：')}</strong>
+        <strong>{t('策略方案')}</strong>{t('：🔫枪械拉满 / ⚖️均衡 / 🦺胸挂拉满 / 🏃轻装跑图（少配件轻装，适合跑图丢包场景）。')}
+        <strong>{t('多枪方案')}</strong>{t('：不同枪械+最优装备组合。')}
+        🔧<strong>{t('配件')}</strong>{t('：点击展开查看推荐配件，价值已计入总估值。')}
+        {t('品级：')}<span style={{ color:'#ffc040' }}> ■{t('{n}级', { n: 5 })}</span><span style={{ color:'#c060e0' }}> ■{t('{n}级', { n: 4 })}</span><span style={{ color:'#40a0e0' }}> ■{t('{n}级', { n: 3 })}</span><span style={{ color:'#40d070' }}> ■{t('{n}级', { n: 2 })}</span>
       </div>
     </div>
   );

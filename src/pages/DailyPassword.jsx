@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 const MAPS = [
   { id: 1, name: '零号大坝', icon: '🏗️', color: '#20e870' },
@@ -12,6 +13,7 @@ const MAPS = [
 ];
 
 function DailyPassword() {
+  const { t } = useT();
   const [passwords, setPasswords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState('');
@@ -57,7 +59,7 @@ function DailyPassword() {
       document.execCommand('copy'); document.body.removeChild(ta);
     });
     setCopied(name);
-    toast.success(`${name} 密码已复制！`);
+    toast.success(t('{name} 密码已复制！', { name }));
     setTimeout(() => setCopied(''), 1500);
   }
 
@@ -84,7 +86,7 @@ function DailyPassword() {
     );
   }
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载每日密码中...</div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载每日密码中...')}</div>;
 
   const latestDate = passwords.length > 0 ? passwords[0].date : '';
   const todayPw = passwords.filter(p => p.date === latestDate);
@@ -92,20 +94,20 @@ function DailyPassword() {
 
   return (
     <div>
-      <SEO title="每日密码" path="/daily" description="三角洲行动每日地图密码查询，零号大坝、长弓溪谷、巴克什、航天基地、潮汐监狱每日更新。" />
-      <h1 className="page-title">每日密码</h1>
+      <SEO title={t('每日密码')} path="/daily" description={t('三角洲行动每日地图密码查询，零号大坝、长弓溪谷、巴克什、航天基地、潮汐监狱每日更新。')} />
+      <h1 className="page-title">{t('每日密码')}</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>
-        更新时间：{formatTime(lastUpdate) || '暂无数据'}
+        {t('更新时间：')}{formatTime(lastUpdate) || t('暂无数据')}
         {latestDate && !isToday && (
-          <span style={{ color: 'var(--danger)', marginLeft: 8, fontSize: 12 }}>（非今日数据）</span>
+          <span style={{ color: 'var(--danger)', marginLeft: 8, fontSize: 12 }}>{t('（非今日数据）')}</span>
         )}
       </p>
 
       {todayPw.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>🔑</div>
-          <p style={{ fontSize: 18, marginBottom: 8 }}>今日密码暂未更新</p>
-          <p style={{ fontSize: 14 }}>密码每天 00:00 自动更新，请稍后再来查看</p>
+          <p style={{ fontSize: 18, marginBottom: 8 }}>{t('今日密码暂未更新')}</p>
+          <p style={{ fontSize: 14 }}>{t('密码每天 00:00 自动更新，请稍后再来查看')}</p>
         </div>
       ) : (
         <div style={{
@@ -145,7 +147,7 @@ function DailyPassword() {
                   color: isCopied ? map.color : 'var(--text-muted)',
                   transition: 'all 0.2s',
                 }}>
-                  {isCopied ? '✅ 已复制' : '点击复制密码'}
+                  {isCopied ? `✅ ${t('已复制')}` : t('点击复制密码')}
                 </div>
               </div>
             );
@@ -158,8 +160,8 @@ function DailyPassword() {
         border: '1px solid var(--border)', borderRadius: 10,
         fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.8,
       }}>
-        <strong style={{ color: 'var(--text-secondary)' }}>💡 提示：</strong>
-        密码每天 00:00 自动更新。点击密码卡片可以快速复制。
+        <strong style={{ color: 'var(--text-secondary)' }}>💡 {t('提示：')}</strong>
+        {t('密码每天 00:00 自动更新。点击密码卡片可以快速复制。')}
       </div>
     </div>
   );

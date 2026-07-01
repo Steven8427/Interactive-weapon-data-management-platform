@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 const PLACES = [
   { key: 'all', name: '全部', icon: '📦' },
@@ -56,6 +57,7 @@ const GRADE_BORDER = {
 };
 
 function GradeBadge({ grade }) {
+  const { t } = useT();
   const g = grade || 0;
   const color = GRADE_COLORS[g] || GRADE_COLORS[0];
   const bg = GRADE_BG[g] || GRADE_BG[0];
@@ -65,12 +67,13 @@ function GradeBadge({ grade }) {
       display: 'inline-block', padding: '1px 7px', borderRadius: 6,
       fontSize: 11, fontWeight: 700, background: bg, color, border: `1px solid ${border}`,
     }}>
-      {g}级
+      {t('{n}级', { n: g })}
     </span>
   );
 }
 
 function Manufacturing() {
+  const { t } = useT();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState('all');
@@ -127,16 +130,16 @@ function Manufacturing() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   }
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载制造数据中...</div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载制造数据中...')}</div>;
 
   if (items.length === 0) {
     return (
       <div>
-        <h1 className="page-title">特勤处制造利润</h1>
+        <h1 className="page-title">{t('特勤处制造利润')}</h1>
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>💰</div>
-          <p style={{ fontSize: 18, marginBottom: 8 }}>暂无制造数据</p>
-          <p style={{ fontSize: 14 }}>请管理员在后台获取数据</p>
+          <p style={{ fontSize: 18, marginBottom: 8 }}>{t('暂无制造数据')}</p>
+          <p style={{ fontSize: 14 }}>{t('请管理员在后台获取数据')}</p>
         </div>
       </div>
     );
@@ -144,10 +147,10 @@ function Manufacturing() {
 
   return (
     <div>
-      <SEO title="特勤处制造利润" path="/profit" description="三角洲行动特勤处制造利润计算器，实时制造成本与收益分析，找到最赚钱的制造方案。" />
-      <h1 className="page-title">特勤处制造利润</h1>
+      <SEO title={t('特勤处制造利润')} path="/profit" description={t('三角洲行动特勤处制造利润计算器，实时制造成本与收益分析，找到最赚钱的制造方案。')} />
+      <h1 className="page-title">{t('特勤处制造利润')}</h1>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
-        更新时间：{formatTime(lastUpdate)} · 共 {items.length} 个制造方案
+        {t('更新时间：')}{formatTime(lastUpdate)} · {t('共 {n} 个制造方案', { n: items.length })}
       </p>
 
       {/* ========== 推荐区 ========== */}
@@ -157,7 +160,7 @@ function Manufacturing() {
         borderRadius: 16, padding: '20px 20px 16px', marginBottom: 24,
       }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          🏆 各部门最赚推荐
+          🏆 {t('各部门最赚推荐')}
         </div>
         <div style={{
           display: 'grid',
@@ -182,7 +185,7 @@ function Manufacturing() {
                     fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 8,
                     background: `${color}15`, color, border: `1px solid ${color}30`,
                   }}>
-                    {icon} {placeName}
+                    {icon} {t(placeName)}
                   </span>
                   <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Lv.{item.level} · {item.period}h</span>
                 </div>
@@ -208,12 +211,12 @@ function Manufacturing() {
                   background: 'rgba(32,232,112,0.06)', border: '1px solid rgba(32,232,112,0.15)',
                   borderRadius: 10, padding: '10px 12px', textAlign: 'center',
                 }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>净利润</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{t('净利润')}</div>
                   <div style={{
                     fontFamily: "'Orbitron', monospace", fontSize: 26, fontWeight: 900, color: '#20e870',
                   }}>+{formatPrice(item.profit)}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                    每小时 {formatPrice(item.profit_per_hour)} · 售价 {formatPrice(item.sale_price)}
+                    {t('每小时 {a} · 售价 {b}', { a: formatPrice(item.profit_per_hour), b: formatPrice(item.sale_price) })}
                   </div>
                 </div>
               </div>
@@ -228,16 +231,16 @@ function Manufacturing() {
           <button key={p.key}
             className={`filter-chip ${selectedPlace === p.key ? 'active' : ''}`}
             onClick={() => setSelectedPlace(p.key)}>
-            {p.icon} {p.name}
+            {p.icon} {p.key === 'all' ? t('全部') : t(p.name)}
           </button>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
         <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-          <option value="profit">总利润 高→低</option>
-          <option value="profit_per_hour">利润/小时 高→低</option>
-          <option value="sale_price">售价 高→低</option>
-          <option value="period">耗时 短→长</option>
+          <option value="profit">{t('总利润 高→低')}</option>
+          <option value="profit_per_hour">{t('利润/小时 高→低')}</option>
+          <option value="sale_price">{t('售价 高→低')}</option>
+          <option value="period">{t('耗时 短→长')}</option>
         </select>
       </div>
 
@@ -297,15 +300,15 @@ function Manufacturing() {
               {/* 价格信息 */}
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
                 <div style={{ textAlign: 'center', minWidth: 55 }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>售价</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{t('售价')}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{formatPrice(item.sale_price)}</div>
                 </div>
                 <div style={{ textAlign: 'center', minWidth: 55 }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>成本</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{t('成本')}</div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{formatPrice(item.cost_price)}</div>
                 </div>
                 <div style={{ textAlign: 'center', minWidth: 55 }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>每小时</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 2 }}>{t('每小时')}</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: isProfitable ? '#20e870' : '#e04848' }}>
                     {formatPrice(item.profit_per_hour)}
                   </div>
@@ -316,7 +319,7 @@ function Manufacturing() {
                   border: `1px solid ${isProfitable ? 'rgba(32,232,112,0.2)' : 'rgba(224,72,72,0.2)'}`,
                   borderRadius: 10, padding: '8px 12px',
                 }}>
-                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 1 }}>总利润</div>
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 1 }}>{t('总利润')}</div>
                   <div style={{
                     fontSize: 18, fontWeight: 900,
                     fontFamily: "'Orbitron', monospace",
@@ -334,14 +337,14 @@ function Manufacturing() {
         border: '1px solid var(--border)', borderRadius: 10,
         fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.8,
       }}>
-        <strong style={{ color: 'var(--text-secondary)' }}>💡 说明：</strong>
-        总利润 = 售价 - 材料成本 - 手续费。品级颜色：
-        <span style={{ color: '#e04848' }}> ■6级</span>
-        <span style={{ color: '#ffc040' }}> ■5级</span>
-        <span style={{ color: '#c060e0' }}> ■4级</span>
-        <span style={{ color: '#40a0e0' }}> ■3级</span>
-        <span style={{ color: '#40d070' }}> ■2级</span>
-        <span style={{ color: '#c0c8d0' }}> ■1级</span>
+        <strong style={{ color: 'var(--text-secondary)' }}>💡 {t('说明：')}</strong>
+        {t('总利润 = 售价 - 材料成本 - 手续费。品级颜色：')}
+        <span style={{ color: '#e04848' }}> ■{t('{n}级', { n: 6 })}</span>
+        <span style={{ color: '#ffc040' }}> ■{t('{n}级', { n: 5 })}</span>
+        <span style={{ color: '#c060e0' }}> ■{t('{n}级', { n: 4 })}</span>
+        <span style={{ color: '#40a0e0' }}> ■{t('{n}级', { n: 3 })}</span>
+        <span style={{ color: '#40d070' }}> ■{t('{n}级', { n: 2 })}</span>
+        <span style={{ color: '#c0c8d0' }}> ■{t('{n}级', { n: 1 })}</span>
       </div>
     </div>
   );

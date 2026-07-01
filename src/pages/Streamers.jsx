@@ -3,11 +3,13 @@ import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
 const SLOT_NAME = {"1":"弹匣","2":"枪口","3":"握把","5":"枪托","6":"瞄具","8":"激光","11":"护木","17":"导轨","20":"导轨","32":"导轨","34":"导轨","35":"导轨","44":"弹鼓"};
 
 function Streamers() {
+  const { t } = useT();
   const [selectedStreamer, setSelectedStreamer] = useState(null);
   const [search, setSearch] = useState('');
   const [codeSearch, setCodeSearch] = useState('');
@@ -66,7 +68,7 @@ function Streamers() {
     return list;
   }, [codes, selectedStreamer, codeSearch]);
 
-  function copyCode(code, e) { if (e) e.stopPropagation(); navigator.clipboard.writeText(code).then(() => toast.success('改枪码已复制！')).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success('改枪码已复制！'); }); }
+  function copyCode(code, e) { if (e) e.stopPropagation(); navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function formatNum(n) { if (!n) return '0'; if (n >= 10000) return (n/10000).toFixed(1) + 'w'; if (n >= 1000) return (n/1000).toFixed(1) + 'k'; return String(n); }
   function formatPrice(n) { if (!n) return '-'; if (n >= 10000) return (n/10000).toFixed(1) + 'w'; return n.toLocaleString(); }
 
@@ -82,26 +84,26 @@ function Streamers() {
     } catch { return []; }
   }
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载主播数据...</div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载主播数据...')}</div>;
 
   // 主播改枪码详情
   if (selectedStreamer) {
     const s = streamers.find(x => x.name === selectedStreamer);
     return (
       <div>
-        <button onClick={() => { setSelectedStreamer(null); setCodeSearch(''); setExpandedId(null); }} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, marginBottom: 16, display: 'block' }}>← 返回主播列表</button>
+        <button onClick={() => { setSelectedStreamer(null); setCodeSearch(''); setExpandedId(null); }} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, marginBottom: 16, display: 'block' }}>← {t('返回主播列表')}</button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
           {s?.avatar ? <img src={s.avatar} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent)', flexShrink: 0 }} />
           : <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(32,232,112,0.1)', border: '3px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{selectedStreamer.charAt(0)}</div>}
           <div style={{ minWidth: 0 }}>
             <h1 className="page-title" style={{ fontSize: 22, marginBottom: 2 }}>{selectedStreamer}</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{s?.codes.length} 个方案 · {formatNum(s?.totalApply)} 使用 · 点击展开查看配件</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t('{n} 个方案 · {apply} 使用 · 点击展开查看配件', { n: s?.codes.length, apply: formatNum(s?.totalApply) })}</p>
           </div>
         </div>
 
         <div className="search-bar" style={{ marginBottom: 16, flex: 'none' }}>
           <span className="search-icon">🔍</span>
-          <input placeholder="搜索枪名或方案名..." value={codeSearch} onChange={e => setCodeSearch(e.target.value)} />
+          <input placeholder={t('搜索枪名或方案名...')} value={codeSearch} onChange={e => setCodeSearch(e.target.value)} />
         </div>
 
         <div style={{ display: 'grid', gap: 10 }}>
@@ -125,7 +127,7 @@ function Streamers() {
                     </div>
                     <div style={{ flexShrink: 0, textAlign: 'right' }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: '#e0a030', fontFamily: "'Orbitron', monospace" }}>{formatNum(code.apply_num)}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatNum(code.like_num)} 赞</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('{n} 赞', { n: formatNum(code.like_num) })}</div>
                     </div>
                   </div>
                   {code.author_comment && <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{code.author_comment}</div>}
@@ -139,10 +141,10 @@ function Streamers() {
                 {isExpanded && (
                   <div style={{ borderTop: `1px solid ${catC}25`, padding: '14px', background: 'rgba(0,0,0,0.15)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>🔧 配件详情 ({accessories.length})</span>
-                      {accTotal > 0 && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>配件总价：<span style={{ color: '#18a0d0', fontWeight: 700, fontFamily: "'Orbitron', monospace" }}>{formatPrice(accTotal)}</span></span>}
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)' }}>🔧 {t('配件详情')} ({accessories.length})</span>
+                      {accTotal > 0 && <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('配件总价：')}<span style={{ color: '#18a0d0', fontWeight: 700, fontFamily: "'Orbitron', monospace" }}>{formatPrice(accTotal)}</span></span>}
                     </div>
-                    {accessories.length === 0 ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>无配件数据</p> : (
+                    {accessories.length === 0 ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('无配件数据')}</p> : (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 6 }}>
                         {accessories.map((acc, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6 }}>
@@ -156,7 +158,7 @@ function Streamers() {
                         ))}
                       </div>
                     )}
-                    <button onClick={e => copyCode(code.solution_code, e)} className="btn btn-primary" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}>📋 复制改枪码</button>
+                    <button onClick={e => copyCode(code.solution_code, e)} className="btn btn-primary" style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}>📋 {t('复制改枪码')}</button>
                   </div>
                 )}
               </div>
@@ -170,12 +172,12 @@ function Streamers() {
   // 主播列表
   return (
     <div>
-      <SEO title="主播同款改枪码" path="/streamers" description="三角洲行动主播改枪码合集，热门主播同款武器配置方案，一键复制使用。" />
-      <h1 className="page-title">🎙️ 主播同款改枪码</h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>来自官方社区 · {streamers.length} 位主播 · {codes.length} 个方案</p>
-      <div className="search-bar" style={{ marginBottom: 20, flex: 'none' }}><span className="search-icon">🔍</span><input placeholder="搜索主播名称..." value={search} onChange={e => setSearch(e.target.value)} /></div>
+      <SEO title={t('主播同款改枪码')} path="/streamers" description={t('三角洲行动主播改枪码合集，热门主播同款武器配置方案，一键复制使用。')} />
+      <h1 className="page-title">🎙️ {t('主播同款改枪码')}</h1>
+      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('来自官方社区 · {n} 位主播 · {c} 个方案', { n: streamers.length, c: codes.length })}</p>
+      <div className="search-bar" style={{ marginBottom: 20, flex: 'none' }}><span className="search-icon">🔍</span><input placeholder={t('搜索主播名称...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
       {filteredStreamers.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>没有找到「{search}」相关的主播</div>
+        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>{t('没有找到「{q}」相关的主播', { q: search })}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
           {filteredStreamers.map(s => (
@@ -185,7 +187,7 @@ function Streamers() {
                 : <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(32,232,112,0.1)', border: '2px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{s.name.charAt(0)}</div>}
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-                  <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{s.codes.length} 个方案</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('{n} 个方案', { n: s.codes.length })}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>

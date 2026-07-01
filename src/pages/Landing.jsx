@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 function Landing() {
+  const { t } = useT();
   const [stats, setStats] = useState({ codes: 0, streamers: 0, guns: 0, variants: 0 });
   const [hotCodes, setHotCodes] = useState([]);
   const [topStreamers, setTopStreamers] = useState([]);
@@ -33,23 +35,23 @@ function Landing() {
     fetchAll();
   }, []);
 
-  function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success('改枪码已复制！')).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success('改枪码已复制！'); }); }
+  function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function formatNum(n) { if (!n) return '0'; if (n >= 10000) return (n / 10000).toFixed(1) + 'w'; if (n >= 1000) return (n / 1000).toFixed(1) + 'k'; return String(n); }
   function formatPrice(n) { if (!n) return '-'; if (n >= 10000) return (n / 10000).toFixed(1) + 'w'; return n.toLocaleString(); }
   const PW_META = { '零号大坝': { icon: '🏗️', color: '#20e870' }, '长弓溪谷': { icon: '🏔️', color: '#18a0d0' }, '巴克什': { icon: '🏜️', color: '#e0a030' }, '航天基地': { icon: '🚀', color: '#d050d0' }, '潮汐监狱': { icon: '⛓️', color: '#e06040' } };
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载中...</div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载中...')}</div>;
 
   return (
     <div>
-      <SEO path="/" description="有力气的改枪网站 - 三角洲行动(Delta Force)最全工具站：官方热门改枪码、主播同款改枪码、玩家社区分享、每日密码查询、特勤处制造利润计算、物品价格走势图、卡战备推荐系统。" />
+      <SEO path="/" description={t('有力气的改枪网站 - 三角洲行动(Delta Force)最全工具站：官方热门改枪码、主播同款改枪码、玩家社区分享、每日密码查询、特勤处制造利润计算、物品价格走势图、卡战备推荐系统。')} />
       {/* Hero */}
       <div style={{ textAlign: 'center', padding: '40px 20px 30px', background: 'linear-gradient(180deg, rgba(32,232,112,0.06) 0%, transparent 100%)', borderRadius: 16, marginBottom: 28 }}>
         <img src="/logo.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 12 }} onError={e => e.target.style.display = 'none'} />
-        <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 28, fontWeight: 900, background: 'linear-gradient(135deg, #20e870, #18a0d0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8 }}>有力气的改枪网站</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>改枪码 · 每日密码 · 制造利润 · 价格走势 · 卡战备</p>
+        <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 28, fontWeight: 900, background: 'linear-gradient(135deg, #20e870, #18a0d0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8 }}>{t('有力气的改枪网站')}</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>{t('改枪码 · 每日密码 · 制造利润 · 价格走势 · 卡战备')}</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
-          {[{ label: '官方改枪码', value: stats.codes, color: '#20e870' }, { label: '官方主播', value: stats.streamers, color: '#18a0d0' }, { label: '自定义枪械', value: stats.guns, color: '#e0a030' }, { label: '改枪配置', value: stats.variants, color: '#d050d0' }].map(s => (
+          {[{ label: t('官方改枪码'), value: stats.codes, color: '#20e870' }, { label: t('官方主播'), value: stats.streamers, color: '#18a0d0' }, { label: t('自定义枪械'), value: stats.guns, color: '#e0a030' }, { label: t('改枪配置'), value: stats.variants, color: '#d050d0' }].map(s => (
             <div key={s.label} style={{ textAlign: 'center' }}><div style={{ fontFamily: "'Orbitron', monospace", fontSize: 24, fontWeight: 900, color: s.color }}>{s.value}</div><div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{s.label}</div></div>
           ))}
         </div>
@@ -58,14 +60,14 @@ function Landing() {
       {/* 快捷入口 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10, marginBottom: 28 }}>
         {[
-          { to: '/streamers', icon: '🎙️', label: '主播改枪码', color: '#20e870' },
-          { to: '/official', icon: '🔥', label: '官方热门', color: '#e06040' },
-          { to: '/community', icon: '🌐', label: '玩家社区', color: '#d050d0' },
-          { to: '/daily', icon: '🔑', label: '每日密码', color: '#18a0d0' },
-          { to: '/profit', icon: '💰', label: '制造利润', color: '#e0a030' },
-          { to: '/cards', icon: '🃏', label: '卡战备', color: '#4090f0' },
-          { to: '/prices', icon: '📈', label: '价格走势', color: '#60c0c0' },
-          { to: '/items', icon: '📖', label: '物品图鉴', color: '#c060e0' },
+          { to: '/streamers', icon: '🎙️', label: t('主播改枪码'), color: '#20e870' },
+          { to: '/official', icon: '🔥', label: t('官方热门'), color: '#e06040' },
+          { to: '/community', icon: '🌐', label: t('玩家社区'), color: '#d050d0' },
+          { to: '/daily', icon: '🔑', label: t('每日密码'), color: '#18a0d0' },
+          { to: '/profit', icon: '💰', label: t('制造利润'), color: '#e0a030' },
+          { to: '/cards', icon: '🃏', label: t('卡战备'), color: '#4090f0' },
+          { to: '/prices', icon: '📈', label: t('价格走势'), color: '#60c0c0' },
+          { to: '/items', icon: '📖', label: t('物品图鉴'), color: '#c060e0' },
         ].map(item => (
           <Link key={item.to} to={item.to} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 10px', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = `${item.color}50`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
@@ -78,7 +80,7 @@ function Landing() {
 
       {/* 今日密码 */}
       {passwords.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🔑 今日密码</h2><Link to="/daily" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>查看全部 →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🔑 {t('今日密码')}</h2><Link to="/daily" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
           {passwords.map(pw => { const m = PW_META[pw.map_name] || { icon: '🗺️', color: '#20e870' }; return (
             <div key={pw.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
@@ -90,7 +92,7 @@ function Landing() {
 
       {/* 今日最赚 */}
       {topMfg.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>💰 今日最赚</h2><Link to="/profit" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>查看全部 →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>💰 {t('今日最赚')}</h2><Link to="/profit" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
           {topMfg.map(item => (
             <Link key={item.id} to="/profit" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: 14, textDecoration: 'none', transition: 'border-color 0.2s' }}
@@ -104,7 +106,7 @@ function Landing() {
 
       {/* 热门主播 */}
       {topStreamers.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🎙️ 热门主播</h2><Link to="/streamers" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>查看全部 →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🎙️ {t('热门主播')}</h2><Link to="/streamers" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
           {topStreamers.map(s => (
             <Link key={s.name} to="/streamers" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 12px', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
@@ -113,7 +115,7 @@ function Landing() {
               {s.avatar ? <img src={s.avatar} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent)', marginBottom: 8 }} />
               : <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(32,232,112,0.1)', border: '2px solid var(--accent)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{s.name.charAt(0)}</div>}
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{s.count}方案 · {formatNum(s.apply)}使用</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{t('{n}方案', { n: s.count })} · {t('{n}使用', { n: formatNum(s.apply) })}</div>
             </Link>
           ))}
         </div>
@@ -121,7 +123,7 @@ function Landing() {
 
       {/* 热门改枪码 */}
       {hotCodes.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🔥 热门改枪码</h2><Link to="/official" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>查看全部 →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🔥 {t('热门改枪码')}</h2><Link to="/official" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gap: 10 }}>
           {hotCodes.map((code, idx) => (
             <div key={code.id} onClick={() => copyCode(code.solution_code)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 14px', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', transition: 'border-color 0.2s' }}

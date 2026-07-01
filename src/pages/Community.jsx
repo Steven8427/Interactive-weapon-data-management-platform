@@ -2,12 +2,14 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import SEO from '../components/SEO';
+import { useT } from '../i18n';
 
 const CATS = ["全部","突击步枪","战斗步枪","射手步枪","冲锋枪","机枪","狙击步枪","连狙","霰弹枪","手枪","弓弩"];
 const CAT_ICON = {"突击步枪":"🔫","战斗步枪":"⚔️","射手步枪":"🎯","冲锋枪":"💨","机枪":"🔥","狙击步枪":"🔭","连狙":"🎯","霰弹枪":"💥","手枪":"🔫","弓弩":"🏹"};
 const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
 
 function Community() {
+  const { t } = useT();
   const [player, setPlayer] = useState(null);
   const [allPlayers, setAllPlayers] = useState([]);
   const [playerGunStats, setPlayerGunStats] = useState({});
@@ -63,17 +65,17 @@ function Community() {
   // Content filter: banned words + patterns (phone/email/URL)
   function checkContent(text) {
     if (!text) return null;
-    const t = text.toLowerCase();
+    const lower = text.toLowerCase();
     // Check banned words
-    for (const w of bannedWords) { if (t.includes(w)) return `包含违规内容「${w}」`; }
+    for (const w of bannedWords) { if (lower.includes(w)) return t('包含违规内容「{w}」', { w }); }
     // Check phone numbers
-    if (/1[3-9]\d{9}/.test(text)) return '不允许包含手机号';
+    if (/1[3-9]\d{9}/.test(text)) return t('不允许包含手机号');
     // Check email
-    if (/[\w.-]+@[\w.-]+\.\w+/.test(text)) return '不允许包含邮箱地址';
+    if (/[\w.-]+@[\w.-]+\.\w+/.test(text)) return t('不允许包含邮箱地址');
     // Check URLs
-    if (/https?:\/\/|www\.|\.com|\.cn|\.net|\.org|\.top/i.test(text)) return '不允许包含网址链接';
+    if (/https?:\/\/|www\.|\.com|\.cn|\.net|\.org|\.top/i.test(text)) return t('不允许包含网址链接');
     // Check QQ/WeChat patterns
-    if (/[Qq]{2}\s*[:：]?\s*\d{5,}/.test(text) || /微信\s*[:：]?\s*\S{4,}/.test(text)) return '不允许包含联系方式';
+    if (/[Qq]{2}\s*[:：]?\s*\d{5,}/.test(text) || /微信\s*[:：]?\s*\S{4,}/.test(text)) return t('不允许包含联系方式');
     return null;
   }
 
@@ -119,28 +121,28 @@ function Community() {
   async function handleAuth(e) {
     e.preventDefault();
     if (authMode === 'register') {
-      if (!agreeTerms) { toast.error('请先同意用户协议'); return; }
-      if (!authForm.username.trim() || !authForm.password.trim()) { toast.error('用户名和密码必填'); return; }
-      if (authForm.password.length < 6) { toast.error('密码至少6位'); return; }
-      if (authForm.password !== authForm.confirmPassword) { toast.error('两次密码不一致'); return; }
+      if (!agreeTerms) { toast.error(t('请先同意用户协议')); return; }
+      if (!authForm.username.trim() || !authForm.password.trim()) { toast.error(t('用户名和密码必填')); return; }
+      if (authForm.password.length < 6) { toast.error(t('密码至少6位')); return; }
+      if (authForm.password !== authForm.confirmPassword) { toast.error(t('两次密码不一致')); return; }
       const nameCheck = checkContent(authForm.username.trim());
-      if (nameCheck) { toast.error(`用户名${nameCheck}`); return; }
+      if (nameCheck) { toast.error(t('用户名{msg}', { msg: nameCheck })); return; }
       if (authForm.nickname.trim()) {
         const nickCheck = checkContent(authForm.nickname.trim());
-        if (nickCheck) { toast.error(`昵称${nickCheck}`); return; }
+        if (nickCheck) { toast.error(t('昵称{msg}', { msg: nickCheck })); return; }
       }
       const { data: exists } = await supabase.from('players').select('id').eq('username', authForm.username.trim().toLowerCase()).single();
-      if (exists) { toast.error('用户名已存在'); return; }
+      if (exists) { toast.error(t('用户名已存在')); return; }
       const { data, error } = await supabase.from('players').insert({ username: authForm.username.trim().toLowerCase(), password_hash: authForm.password, nickname: authForm.nickname.trim() || authForm.username.trim() }).select().single();
-      if (error) { toast.error('注册失败'); return; }
-      setPlayer(data); localStorage.setItem('df_player', JSON.stringify(data)); toast.success('注册成功！'); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false); setAgreeTerms(false); fetchPlayerList();
+      if (error) { toast.error(t('注册失败')); return; }
+      setPlayer(data); localStorage.setItem('df_player', JSON.stringify(data)); toast.success(t('注册成功！')); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false); setAgreeTerms(false); fetchPlayerList();
     } else {
       const { data, error } = await supabase.from('players').select('*').eq('username', authForm.username.trim().toLowerCase()).eq('password_hash', authForm.password).single();
-      if (error || !data) { toast.error('用户名或密码错误'); return; }
-      setPlayer(data); localStorage.setItem('df_player', JSON.stringify(data)); toast.success(`欢迎，${data.nickname || data.username}！`); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false);
+      if (error || !data) { toast.error(t('用户名或密码错误')); return; }
+      setPlayer(data); localStorage.setItem('df_player', JSON.stringify(data)); toast.success(t('欢迎，{name}！', { name: data.nickname || data.username })); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false);
     }
   }
-  function logout() { setPlayer(null); localStorage.removeItem('df_player'); toast.success('已退出'); }
+  function logout() { setPlayer(null); localStorage.removeItem('df_player'); toast.success(t('已退出')); }
 
   function openProfile() {
     if (!player) return;
@@ -154,11 +156,11 @@ function Community() {
     // Content check
     if (profileForm.nickname.trim()) {
       const nickCheck = checkContent(profileForm.nickname.trim());
-      if (nickCheck) { toast.error(`昵称${nickCheck}`); return; }
+      if (nickCheck) { toast.error(t('昵称{msg}', { msg: nickCheck })); return; }
     }
     if (profileForm.description.trim()) {
       const descCheck = checkContent(profileForm.description.trim());
-      if (descCheck) { toast.error(`简介${descCheck}`); return; }
+      if (descCheck) { toast.error(t('简介{msg}', { msg: descCheck })); return; }
     }
     setProfileSaving(true);
     let avatarUrl = null;
@@ -167,10 +169,10 @@ function Community() {
         const ext = profileAvatar.name.split('.').pop();
         const fname = `avatar_${player.id}_${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from('gun-images').upload(fname, profileAvatar);
-        if (upErr) { toast.error('头像上传失败'); setProfileSaving(false); return; }
+        if (upErr) { toast.error(t('头像上传失败')); setProfileSaving(false); return; }
         const { data: urlData } = supabase.storage.from('gun-images').getPublicUrl(fname);
         avatarUrl = urlData.publicUrl;
-      } catch { toast.error('上传失败'); setProfileSaving(false); return; }
+      } catch { toast.error(t('上传失败')); setProfileSaving(false); return; }
     }
     // Save as pending review
     const updates = {
@@ -180,8 +182,8 @@ function Community() {
       profile_status: 'pending',
     };
     const { error } = await supabase.from('players').update(updates).eq('id', player.id);
-    if (error) { toast.error('提交失败'); setProfileSaving(false); return; }
-    toast.success('资料已提交，等待管理员审核'); setShowProfile(false); setProfileSaving(false);
+    if (error) { toast.error(t('提交失败')); setProfileSaving(false); return; }
+    toast.success(t('资料已提交，等待管理员审核')); setShowProfile(false); setProfileSaving(false);
   }
 
   // Gun catalog search (for adding guns)
@@ -205,40 +207,40 @@ function Community() {
       if (name.includes(s)) { cat = catMap[s] || s; name = name.replace(s, '').trim(); break; }
     }
     const existing = guns.find(g => g.name === name);
-    if (existing) { toast.error('已有此枪械'); setShowCatalog(false); setGunSearch(''); return; }
+    if (existing) { toast.error(t('已有此枪械')); setShowCatalog(false); setGunSearch(''); return; }
     const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
     const { data: newGun } = await supabase.from('guns').insert({ name, category: cat, image_url: item.pic || '', player_id: player.id, sort_order: mx + 1 }).select().single();
     if (newGun) setGuns(prev => [...prev, { ...newGun, variants: [] }]);
-    toast.success(`${name} 已添加！`);
+    toast.success(t('{name} 已添加！', { name }));
     setShowCatalog(false); setGunSearch('');
   }
 
   // Delete gun - optimistic local update
   async function deleteGun(id, name) {
-    if (!window.confirm(`删除 ${name}？其下所有改装码也会被删除！`)) return;
+    if (!window.confirm(t('删除 {name}？其下所有改装码也会被删除！', { name }))) return;
     await supabase.from('gun_variants').delete().eq('gun_id', id);
     await supabase.from('guns').delete().eq('id', id);
     setGuns(prev => prev.filter(g => g.id !== id));
     if (selectedGunId === id) setSelectedGunId('');
-    toast.success('已删除');
+    toast.success(t('已删除'));
   }
 
   // Add variant - optimistic local update
   async function addVariant() {
-    if (!selectedGunId || !variantForm.code.trim()) { toast.error('请填写改枪码'); return; }
+    if (!selectedGunId || !variantForm.code.trim()) { toast.error(t('请填写改枪码')); return; }
     const gun = guns.find(g => g.id === selectedGunId);
     const mx = gun ? gun.variants.reduce((m, v) => Math.max(m, v.sort_order || 0), 0) : 0;
     const { data: newV } = await supabase.from('gun_variants').insert({ gun_id: selectedGunId, ...variantForm, sort_order: mx + 1, status: 'pending' }).select().single();
     if (newV) setGuns(prev => prev.map(g => g.id === selectedGunId ? { ...g, variants: [...g.variants, newV] } : g));
-    toast.success('已提交，等待管理员审核'); setVariantForm({ version: '', price: '', mod_type: '', code: '', effective_range: '' });
+    toast.success(t('已提交，等待管理员审核')); setVariantForm({ version: '', price: '', mod_type: '', code: '', effective_range: '' });
   }
 
   // Delete variant - optimistic local update
   async function deleteVariant(id) {
-    if (!window.confirm('确定删除？')) return;
+    if (!window.confirm(t('确定删除？'))) return;
     await supabase.from('gun_variants').delete().eq('id', id);
     setGuns(prev => prev.map(g => ({ ...g, variants: g.variants.filter(v => v.id !== id) })));
-    toast.success('已删除');
+    toast.success(t('已删除'));
   }
 
   // Update variant - optimistic local update
@@ -247,10 +249,10 @@ function Community() {
     const updates = { version: editingVariant.version, price: editingVariant.price, mod_type: editingVariant.mod_type, code: editingVariant.code, effective_range: editingVariant.effective_range };
     await supabase.from('gun_variants').update(updates).eq('id', editingVariant.id);
     setGuns(prev => prev.map(g => ({ ...g, variants: g.variants.map(v => v.id === editingVariant.id ? { ...v, ...updates } : v) })));
-    toast.success('更新成功！'); setEditingVariant(null);
+    toast.success(t('更新成功！')); setEditingVariant(null);
   }
 
-  function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success('改枪码已复制！')).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success('改枪码已复制！'); }); }
+  function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function getVersionClass(v) { if (!v) return 'version-t0'; if (v.includes('T0')) return 'version-t0'; if (v.includes('T1')) return 'version-t1'; if (v.includes('T2')) return 'version-t2'; return 'version-t0'; }
   function hasField(variants, field) { return variants.some(v => v[field] && v[field].toString().trim() !== ''); }
 
@@ -296,7 +298,7 @@ function Community() {
   const selectedPlayer = selectedPlayerId ? allPlayers.find(p => p.id === selectedPlayerId) : null;
   const selectedGun = guns.find(g => g.id === selectedGunId);
 
-  if (loading) return <div className="loading"><div className="spinner"></div>加载社区数据...</div>;
+  if (loading) return <div className="loading"><div className="spinner"></div>{t('加载社区数据...')}</div>;
 
   // =====================================================================
   // 玩家详情页
@@ -304,12 +306,12 @@ function Community() {
   if (selectedPlayerId && selectedPlayer) {
     const totalVariants = guns.reduce((s, g) => s + g.variants.length, 0);
 
-    if (detailLoading) return <div className="loading"><div className="spinner"></div>加载枪械数据中...</div>;
+    if (detailLoading) return <div className="loading"><div className="spinner"></div>{t('加载枪械数据中...')}</div>;
 
     return (
       <div>
         <button onClick={() => { setSelectedPlayerId(null); setSelectedGunId(''); setFilterCat('全部'); setFilterVer('全部'); setDetailSearch(''); setSortBy('default'); fetchPlayerList(); }}
-          style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, marginBottom: 16, display: 'block' }}>← 返回社区</button>
+          style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, marginBottom: 16, display: 'block' }}>← {t('返回社区')}</button>
 
         {/* 作者信息头 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
@@ -321,20 +323,20 @@ function Community() {
             </div>
           )}
           <div>
-            <h1 className="page-title" style={{ fontSize: 22, marginBottom: 2 }}>{selectedPlayer.nickname || selectedPlayer.username} 的改枪码</h1>
+            <h1 className="page-title" style={{ fontSize: 22, marginBottom: 2 }}>{t('{name} 的改枪码', { name: selectedPlayer.nickname || selectedPlayer.username })}</h1>
           </div>
         </div>
-        <p className="page-subtitle">点击改枪码即可复制 · {guns.length} 把武器 · {totalVariants} 个配置</p>
+        <p className="page-subtitle">{t('点击改枪码即可复制 · {g} 把武器 · {v} 个配置', { g: guns.length, v: totalVariants })}</p>
 
         {/* ===== 自己的页面：管理面板 ===== */}
         {isOwnProfile && (
           <div className="admin-section" style={{ marginBottom: 16 }}>
-            <h3>✏️ 添加枪械与改枪码</h3>
+            <h3>✏️ {t('添加枪械与改枪码')}</h3>
             {/* 搜索添加枪械 */}
             <div ref={catalogRef} style={{ position: 'relative', marginBottom: 14 }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label>搜索枪械（从官方目录添加）</label>
-                <input type="text" value={gunSearch} onChange={e => searchCatalog(e.target.value)} placeholder="输入枪名，如 AKM、M4A1..."
+                <label>{t('搜索枪械（从官方目录添加）')}</label>
+                <input type="text" value={gunSearch} onChange={e => searchCatalog(e.target.value)} placeholder={t('输入枪名，如 AKM、M4A1...')}
                   onFocus={() => { if (catalogResults.length) setShowCatalog(true); }} />
               </div>
               {showCatalog && catalogResults.length > 0 && (
@@ -344,7 +346,7 @@ function Community() {
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(32,232,112,0.06)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       {item.pic && <img src={item.pic} alt="" style={{ width: 36, height: 26, objectFit: 'contain', borderRadius: 4, background: 'linear-gradient(135deg,#1a2a3a,#1e3040)' }} />}
                       <div><div style={{ fontSize: 14, fontWeight: 600 }}>{item.object_name}</div><div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.second_class_cn}</div></div>
-                      <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--accent)' }}>+ 添加</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--accent)' }}>+ {t('添加')}</span>
                     </div>
                   ))}
                 </div>
@@ -354,10 +356,10 @@ function Community() {
             {/* 选择枪械添加改装码 */}
             {guns.length > 0 && (<>
               <div className="form-group" style={{ marginBottom: 10 }}>
-                <label>选择枪械添加改枪码</label>
+                <label>{t('选择枪械添加改枪码')}</label>
                 <select value={selectedGunId} onChange={e => setSelectedGunId(e.target.value)} style={{ width: '100%' }}>
-                  <option value="">-- 选择枪械 --</option>
-                  {guns.map(g => <option key={g.id} value={g.id}>{g.name} ({g.variants.length}个配置)</option>)}
+                  <option value="">{t('-- 选择枪械 --')}</option>
+                  {guns.map(g => <option key={g.id} value={g.id}>{g.name} {t('({n}个配置)', { n: g.variants.length })}</option>)}
                 </select>
               </div>
 
@@ -369,13 +371,13 @@ function Community() {
                     <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{selectedGun.category}</span>
                   </div>
                   <div className="form-row">
-                    <div className="form-group"><label>段位</label><select value={variantForm.version} onChange={e => setVariantForm({ ...variantForm, version: e.target.value })}><option value="">不选</option>{['T0','T1','T2','T3','T4','狙击','连狙','手枪','弓弩'].map(t => <option key={t}>{t}</option>)}</select></div>
-                    <div className="form-group"><label>价格</label><input type="text" value={variantForm.price} onChange={e => setVariantForm({ ...variantForm, price: e.target.value })} placeholder="85w" /></div>
-                    <div className="form-group"><label>类型</label><input type="text" value={variantForm.mod_type} onChange={e => setVariantForm({ ...variantForm, mod_type: e.target.value })} placeholder="满改" /></div>
-                    <div className="form-group"><label>射程</label><input type="text" value={variantForm.effective_range} onChange={e => setVariantForm({ ...variantForm, effective_range: e.target.value })} placeholder="52米" /></div>
+                    <div className="form-group"><label>{t('段位')}</label><select value={variantForm.version} onChange={e => setVariantForm({ ...variantForm, version: e.target.value })}><option value="">{t('不选')}</option>{['T0','T1','T2','T3','T4','狙击','连狙','手枪','弓弩'].map(ver => <option key={ver}>{ver}</option>)}</select></div>
+                    <div className="form-group"><label>{t('价格')}</label><input type="text" value={variantForm.price} onChange={e => setVariantForm({ ...variantForm, price: e.target.value })} placeholder="85w" /></div>
+                    <div className="form-group"><label>{t('类型')}</label><input type="text" value={variantForm.mod_type} onChange={e => setVariantForm({ ...variantForm, mod_type: e.target.value })} placeholder={t('满改')} /></div>
+                    <div className="form-group"><label>{t('射程')}</label><input type="text" value={variantForm.effective_range} onChange={e => setVariantForm({ ...variantForm, effective_range: e.target.value })} placeholder={t('52米')} /></div>
                   </div>
-                  <div className="form-group"><label>改枪码 *</label><input type="text" value={variantForm.code} onChange={e => setVariantForm({ ...variantForm, code: e.target.value })} placeholder="粘贴改枪码" style={{ fontFamily: 'monospace' }} /></div>
-                  <button className="btn btn-primary" onClick={addVariant}>添加改枪码</button>
+                  <div className="form-group"><label>{t('改枪码 *')}</label><input type="text" value={variantForm.code} onChange={e => setVariantForm({ ...variantForm, code: e.target.value })} placeholder={t('粘贴改枪码')} style={{ fontFamily: 'monospace' }} /></div>
+                  <button className="btn btn-primary" onClick={addVariant}>{t('添加改枪码')}</button>
                 </div>
               )}
             </>)}
@@ -384,19 +386,19 @@ function Community() {
 
         {/* 分类筛选 */}
         <div className="filter-bar">
-          {CATS.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c !== '全部' && (CAT_ICON[c] || '') + ' '}{c}</button>)}
+          {CATS.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : `${CAT_ICON[c] || ''} ${c}`}</button>)}
         </div>
 
         {/* 搜索+段位+排序 */}
         <div className="search-row">
-          <div className="search-bar"><span className="search-icon">🔍</span><input placeholder="搜索枪械名称、改装类型..." value={detailSearch} onChange={e => setDetailSearch(e.target.value)} /></div>
-          <select className="filter-select" value={filterVer} onChange={e => setFilterVer(e.target.value)}>{versions.map(v => <option key={v} value={v}>{v === '全部' ? '全部段位' : v}</option>)}</select>
-          <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}><option value="default">默认排序</option><option value="price_asc">价格 低→高</option><option value="price_desc">价格 高→低</option></select>
+          <div className="search-bar"><span className="search-icon">🔍</span><input placeholder={t('搜索枪械名称、改装类型...')} value={detailSearch} onChange={e => setDetailSearch(e.target.value)} /></div>
+          <select className="filter-select" value={filterVer} onChange={e => setFilterVer(e.target.value)}>{versions.map(v => <option key={v} value={v}>{v === '全部' ? t('全部段位') : v}</option>)}</select>
+          <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}><option value="default">{t('默认排序')}</option><option value="price_asc">{t('价格 低→高')}</option><option value="price_desc">{t('价格 高→低')}</option></select>
         </div>
 
         {/* 枪械卡片列表（完全和 Home.jsx 一样） */}
         {filtered.length === 0 ? (
-          <div className="loading" style={{ color: 'var(--text-muted)' }}>{guns.length === 0 ? '还没有枪械，使用上方搜索框添加' : '没有找到匹配的枪械'}</div>
+          <div className="loading" style={{ color: 'var(--text-muted)' }}>{guns.length === 0 ? t('还没有枪械，使用上方搜索框添加') : t('没有找到匹配的枪械')}</div>
         ) : (
           filtered.map(gun => {
             const catC = CAT_COLOR[gun.category] || '#1ecc60';
@@ -414,21 +416,21 @@ function Community() {
                       <span className="gun-name">{gun.name}</span>
                       <span className="cat-badge" style={{ background: `${catC}18`, color: catC, border: `1px solid ${catC}33` }}>{CAT_ICON[gun.category] || ''} {gun.category}</span>
                     </div>
-                    <div className="gun-count">{gun.variants.length} 个配置方案</div>
+                    <div className="gun-count">{t('{n} 个配置方案', { n: gun.variants.length })}</div>
                   </div>
-                  {isOwnProfile && <button className="btn btn-danger btn-small" onClick={() => deleteGun(gun.id, gun.name)}>删除枪械</button>}
+                  {isOwnProfile && <button className="btn btn-danger btn-small" onClick={() => deleteGun(gun.id, gun.name)}>{t('删除枪械')}</button>}
                 </div>
                 <div className="table-scroll">
                   <table className="variants-table" style={{ minWidth: 'auto' }}>
                     <thead>
                       <tr>
                         <th style={{ width: 40 }}>#</th>
-                        {showVersion && <th style={{ width: 60 }}>段位</th>}
-                        {showPrice && <th style={{ width: 70 }}>价格</th>}
-                        {showModType && <th style={{ width: 110 }}>改装类型</th>}
-                        <th>改枪码</th>
-                        {showRange && <th style={{ width: 85 }}>有效射程</th>}
-                        {isOwnProfile && <th style={{ width: 80 }}>操作</th>}
+                        {showVersion && <th style={{ width: 60 }}>{t('段位')}</th>}
+                        {showPrice && <th style={{ width: 70 }}>{t('价格')}</th>}
+                        {showModType && <th style={{ width: 110 }}>{t('改装类型')}</th>}
+                        <th>{t('改枪码')}</th>
+                        {showRange && <th style={{ width: 85 }}>{t('有效射程')}</th>}
+                        {isOwnProfile && <th style={{ width: 80 }}>{t('操作')}</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -441,7 +443,7 @@ function Community() {
                             {showModType && <td><input value={editingVariant.mod_type} onChange={e => setEditingVariant({ ...editingVariant, mod_type: e.target.value })} style={{ width: 80, padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11 }} /></td>}
                             <td><input value={editingVariant.code} onChange={e => setEditingVariant({ ...editingVariant, code: e.target.value })} style={{ width: '100%', padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontFamily: 'monospace', fontSize: 10 }} /></td>
                             {showRange && <td><input value={editingVariant.effective_range} onChange={e => setEditingVariant({ ...editingVariant, effective_range: e.target.value })} style={{ width: 50, padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11 }} /></td>}
-                            <td><div style={{ display: 'flex', gap: 3 }}><button className="btn btn-success btn-small" onClick={updateVariant}>存</button><button className="btn btn-small" onClick={() => setEditingVariant(null)} style={{ color: 'var(--text-muted)' }}>消</button></div></td>
+                            <td><div style={{ display: 'flex', gap: 3 }}><button className="btn btn-success btn-small" onClick={updateVariant}>{t('存')}</button><button className="btn btn-small" onClick={() => setEditingVariant(null)} style={{ color: 'var(--text-muted)' }}>{t('消')}</button></div></td>
                           </>) : (<>
                             <td style={{ color: 'var(--text-muted)', cursor: 'pointer' }} onClick={() => copyCode(v.code)}>{idx + 1}</td>
                             {showVersion && <td onClick={() => copyCode(v.code)} style={{ cursor: 'pointer' }}>{v.version && <span className={`version-badge ${getVersionClass(v.version)}`}>{v.version}</span>}</td>}
@@ -449,10 +451,10 @@ function Community() {
                             {showModType && <td style={{ cursor: 'pointer' }} onClick={() => copyCode(v.code)}>{v.mod_type || '-'}</td>}
                             <td className="code-cell" onClick={() => copyCode(v.code)} style={{ cursor: 'pointer' }}>
                               {v.code}
-                              {v.status === 'pending' && <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 4, background: 'rgba(224,160,48,0.15)', color: '#e0a030', fontWeight: 600 }}>待审核</span>}
+                              {v.status === 'pending' && <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 4, background: 'rgba(224,160,48,0.15)', color: '#e0a030', fontWeight: 600 }}>{t('待审核')}</span>}
                             </td>
                             {showRange && <td onClick={() => copyCode(v.code)} style={{ cursor: 'pointer' }}>{v.effective_range ? <span className="range-badge">{v.effective_range}</span> : '-'}</td>}
-                            {isOwnProfile && <td><div style={{ display: 'flex', gap: 3 }}><button className="btn btn-success btn-small" onClick={() => setEditingVariant({ ...v })}>编</button><button className="btn btn-danger btn-small" onClick={() => deleteVariant(v.id)}>删</button></div></td>}
+                            {isOwnProfile && <td><div style={{ display: 'flex', gap: 3 }}><button className="btn btn-success btn-small" onClick={() => setEditingVariant({ ...v })}>{t('编')}</button><button className="btn btn-danger btn-small" onClick={() => deleteVariant(v.id)}>{t('删')}</button></div></td>}
                           </>)}
                         </tr>
                       ))}
@@ -472,9 +474,9 @@ function Community() {
   // =====================================================================
   return (
     <div>
-      <SEO title="玩家社区" path="/community" description="三角洲行动玩家改枪码分享社区，注册分享你的武器配置方案，交流改枪心得。" />
+      <SEO title={t('玩家社区')} path="/community" description={t('三角洲行动玩家改枪码分享社区，注册分享你的武器配置方案，交流改枪心得。')} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <h1 className="page-title">🌐 玩家社区</h1>
+        <h1 className="page-title">🌐 {t('玩家社区')}</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {player ? (<>
             <div onClick={openProfile} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 10px', borderRadius: 20, background: 'rgba(32,232,112,0.06)', border: '1px solid rgba(32,232,112,0.15)', transition: 'all 0.15s' }}
@@ -484,25 +486,25 @@ function Community() {
               : <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(32,232,112,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{(player.nickname || player.username || '?').charAt(0).toUpperCase()}</div>}
               <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{player.nickname || player.username}</span>
             </div>
-            <button onClick={logout} style={{ fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>退出</button>
+            <button onClick={logout} style={{ fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>{t('退出')}</button>
           </>) : (<>
-            <button onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ fontSize: 13, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>登录</button>
-            <button onClick={() => { setAuthMode('register'); setShowAuthModal(true); }} style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>注册</button>
+            <button onClick={() => { setAuthMode('login'); setShowAuthModal(true); }} style={{ fontSize: 13, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>{t('登录')}</button>
+            <button onClick={() => { setAuthMode('register'); setShowAuthModal(true); }} style={{ fontSize: 13, color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>{t('注册')}</button>
           </>)}
         </div>
       </div>
-      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>分享和发现玩家的改枪方案 · 点击作者查看改枪码</p>
+      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('分享和发现玩家的改枪方案 · 点击作者查看改枪码')}</p>
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-        <div className="search-bar" style={{ flex: '1 1 200px' }}><span className="search-icon">🔍</span><input placeholder="搜索玩家..." value={search} onChange={e => setSearch(e.target.value)} /></div>
-        {player && <button className="btn btn-primary" onClick={() => setSelectedPlayerId(player.id)}>✏️ 我的改枪码</button>}
+        <div className="search-bar" style={{ flex: '1 1 200px' }}><span className="search-icon">🔍</span><input placeholder={t('搜索玩家...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
+        {player && <button className="btn btn-primary" onClick={() => setSelectedPlayerId(player.id)}>✏️ {t('我的改枪码')}</button>}
       </div>
 
       {playerCards.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 50, color: 'var(--text-muted)' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🌐</div>
-          <p style={{ fontSize: 16, marginBottom: 8 }}>还没有人分享改枪码</p>
-          <p style={{ fontSize: 13 }}>{player ? '点击上方按钮开始添加！' : '登录后即可创建改枪方案'}</p>
+          <p style={{ fontSize: 16, marginBottom: 8 }}>{t('还没有人分享改枪码')}</p>
+          <p style={{ fontSize: 13 }}>{player ? t('点击上方按钮开始添加！') : t('登录后即可创建改枪方案')}</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
@@ -523,15 +525,15 @@ function Community() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontWeight: 700, fontSize: 16 }}>{p.nickname || p.username}</span>
-                      {isMe && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: 'rgba(32,232,112,0.12)', color: '#20e870', fontWeight: 600 }}>我</span>}
+                      {isMe && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: 'rgba(32,232,112,0.12)', color: '#20e870', fontWeight: 600 }}>{t('我')}</span>}
                     </div>
                     {p.description && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.description}</div>}
                   </div>
                   <span style={{ fontSize: 18, color: 'var(--text-muted)' }}>→</span>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <span className="author-stat">🔫 {st.gunCount} 把武器</span>
-                  <span className="author-stat">📋 {st.variantCount} 个配置</span>
+                  <span className="author-stat">🔫 {t('{n} 把武器', { n: st.gunCount })}</span>
+                  <span className="author-stat">📋 {t('{n} 个配置', { n: st.variantCount })}</span>
                 </div>
               </div>
             );
@@ -545,43 +547,43 @@ function Community() {
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: 28, maxWidth: 380, width: '100%', position: 'relative' }}>
             <button onClick={() => { setShowAuthModal(false); setShowPw(false); }} style={{ position: 'absolute', top: 12, right: 14, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>✕</button>
             <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-              <button className={`filter-chip ${authMode === 'login' ? 'active' : ''}`} onClick={() => { setAuthMode('login'); setShowPw(false); }}>登录</button>
-              <button className={`filter-chip ${authMode === 'register' ? 'active' : ''}`} onClick={() => { setAuthMode('register'); setShowPw(false); }}>注册</button>
+              <button className={`filter-chip ${authMode === 'login' ? 'active' : ''}`} onClick={() => { setAuthMode('login'); setShowPw(false); }}>{t('登录')}</button>
+              <button className={`filter-chip ${authMode === 'register' ? 'active' : ''}`} onClick={() => { setAuthMode('register'); setShowPw(false); }}>{t('注册')}</button>
             </div>
             <form onSubmit={handleAuth}>
-              <div className="form-group"><label>用户名</label><input type="text" value={authForm.username} onChange={e => setAuthForm({ ...authForm, username: e.target.value })} placeholder="用户名" autoComplete="username" /></div>
+              <div className="form-group"><label>{t('用户名')}</label><input type="text" value={authForm.username} onChange={e => setAuthForm({ ...authForm, username: e.target.value })} placeholder={t('用户名')} autoComplete="username" /></div>
               <div className="form-group">
-                <label>密码{authMode === 'register' ? '（至少6位）' : ''}</label>
+                <label>{t('密码')}{authMode === 'register' ? t('（至少6位）') : ''}</label>
                 <div style={{ position: 'relative' }}>
-                  <input type={showPw ? 'text' : 'password'} value={authForm.password} onChange={e => setAuthForm({ ...authForm, password: e.target.value })} placeholder="密码" style={{ paddingRight: 40 }} autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} />
+                  <input type={showPw ? 'text' : 'password'} value={authForm.password} onChange={e => setAuthForm({ ...authForm, password: e.target.value })} placeholder={t('密码')} style={{ paddingRight: 40 }} autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} />
                   <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: showPw ? 'var(--accent)' : 'var(--text-muted)', padding: 4 }}>{showPw ? '👁️' : '👁️‍🗨️'}</button>
                 </div>
               </div>
               {authMode === 'register' && (
                 <div className="form-group">
-                  <label>确认密码</label>
+                  <label>{t('确认密码')}</label>
                   <div style={{ position: 'relative' }}>
-                    <input type={showPw ? 'text' : 'password'} value={authForm.confirmPassword} onChange={e => setAuthForm({ ...authForm, confirmPassword: e.target.value })} placeholder="再次输入密码" style={{ paddingRight: 40 }} autoComplete="new-password" />
+                    <input type={showPw ? 'text' : 'password'} value={authForm.confirmPassword} onChange={e => setAuthForm({ ...authForm, confirmPassword: e.target.value })} placeholder={t('再次输入密码')} style={{ paddingRight: 40 }} autoComplete="new-password" />
                     <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: showPw ? 'var(--accent)' : 'var(--text-muted)', padding: 4 }}>{showPw ? '👁️' : '👁️‍🗨️'}</button>
                   </div>
                   {authForm.password && authForm.confirmPassword && authForm.password !== authForm.confirmPassword && (
-                    <div style={{ fontSize: 11, color: '#e04848', marginTop: 4 }}>两次密码不一致</div>
+                    <div style={{ fontSize: 11, color: '#e04848', marginTop: 4 }}>{t('两次密码不一致')}</div>
                   )}
                   {authForm.password && authForm.confirmPassword && authForm.password === authForm.confirmPassword && (
-                    <div style={{ fontSize: 11, color: '#20e870', marginTop: 4 }}>✓ 密码一致</div>
+                    <div style={{ fontSize: 11, color: '#20e870', marginTop: 4 }}>✓ {t('密码一致')}</div>
                   )}
                 </div>
               )}
-              {authMode === 'register' && <div className="form-group"><label>昵称（选填）</label><input type="text" value={authForm.nickname} onChange={e => setAuthForm({ ...authForm, nickname: e.target.value })} placeholder="昵称" /></div>}
+              {authMode === 'register' && <div className="form-group"><label>{t('昵称（选填）')}</label><input type="text" value={authForm.nickname} onChange={e => setAuthForm({ ...authForm, nickname: e.target.value })} placeholder={t('昵称')} /></div>}
               {authMode === 'register' && (
                 <div style={{ marginBottom: 12 }}>
                   <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                     <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} style={{ marginTop: 3, flexShrink: 0 }} />
-                    <span>我已阅读并同意 <a href="/legal?tab=terms" target="_blank" rel="noopener" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>《用户协议》</a> 和 <a href="/legal?tab=privacy" target="_blank" rel="noopener" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>《隐私政策》</a></span>
+                    <span>{t('我已阅读并同意')} <a href="/legal?tab=terms" target="_blank" rel="noopener" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>{t('《用户协议》')}</a> {t('和')} <a href="/legal?tab=privacy" target="_blank" rel="noopener" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>{t('《隐私政策》')}</a></span>
                   </label>
                 </div>
               )}
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 4, opacity: authMode === 'register' && !agreeTerms ? 0.5 : 1 }}>{authMode === 'register' ? '注册' : '登录'}</button>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 4, opacity: authMode === 'register' && !agreeTerms ? 0.5 : 1 }}>{authMode === 'register' ? t('注册') : t('登录')}</button>
             </form>
           </div>
         </div>
@@ -593,11 +595,11 @@ function Community() {
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: 28, maxWidth: 420, width: '100%', position: 'relative' }}>
             <button onClick={() => setShowProfile(false)} style={{ position: 'absolute', top: 12, right: 14, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>✕</button>
 
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>👤 个人资料</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, background: 'var(--gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>👤 {t('个人资料')}</h3>
 
             {player.profile_status === 'pending' && (
               <div style={{ padding: '8px 12px', marginBottom: 14, borderRadius: 8, background: 'rgba(224,160,48,0.1)', border: '1px solid rgba(224,160,48,0.25)', fontSize: 12, color: '#e0a030' }}>
-                ⏳ 你有一份资料修改正在审核中，审核通过后自动生效
+                ⏳ {t('你有一份资料修改正在审核中，审核通过后自动生效')}
               </div>
             )}
 
@@ -625,19 +627,19 @@ function Community() {
 
             {/* 表单 */}
             <div className="form-group">
-              <label>昵称</label>
-              <input type="text" value={profileForm.nickname} onChange={e => setProfileForm({ ...profileForm, nickname: e.target.value })} placeholder="显示名称" />
+              <label>{t('昵称')}</label>
+              <input type="text" value={profileForm.nickname} onChange={e => setProfileForm({ ...profileForm, nickname: e.target.value })} placeholder={t('显示名称')} />
             </div>
             <div className="form-group">
-              <label>个人简介</label>
-              <input type="text" value={profileForm.description} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} placeholder="一句话介绍自己" />
+              <label>{t('个人简介')}</label>
+              <input type="text" value={profileForm.description} onChange={e => setProfileForm({ ...profileForm, description: e.target.value })} placeholder={t('一句话介绍自己')} />
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
               <button className="btn btn-primary" onClick={saveProfile} disabled={profileSaving} style={{ flex: 1, justifyContent: 'center' }}>
-                {profileSaving ? '保存中...' : '💾 保存'}
+                {profileSaving ? t('保存中...') : `💾 ${t('保存')}`}
               </button>
-              <button className="btn" onClick={() => setShowProfile(false)} style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}>取消</button>
+              <button className="btn" onClick={() => setShowProfile(false)} style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}>{t('取消')}</button>
             </div>
           </div>
         </div>

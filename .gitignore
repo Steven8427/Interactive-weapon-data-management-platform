@@ -1,1 +1,5 @@
 node_modules
+
+# local secrets (DB admin connection) - never commit
+.db.env
+.dev-tools/

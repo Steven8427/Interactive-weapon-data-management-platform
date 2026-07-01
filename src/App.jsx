@@ -13,25 +13,27 @@ import Streamers from './pages/Streamers';
 import Community from './pages/Community';
 import Legal from './pages/Legal';
 import ItemCatalog from './pages/ItemCatalog';
+import { useT, LanguageSwitcher } from './i18n';
 
 function App() {
   const location = useLocation();
+  const { t } = useT();
   const [isAdmin, setIsAdmin] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const navItems = [
-    { path: '/', icon: '🏠', label: '首页' },
-    { path: '/streamers', icon: '🎙️', label: '主播同款改枪码' },
-    { path: '/official', icon: '🔥', label: '官方热门改枪码' },
-    { path: '/community', icon: '🌐', label: '玩家社区' },
-    { path: '/daily', icon: '🔑', label: '每日密码' },
-    { path: '/profit', icon: '💰', label: '特勤处制造利润' },
-    { path: '/prices', icon: '📈', label: '价格走势图' },
-    { path: '/items', icon: '📖', label: '物品图鉴' },
-    { path: '/cards', icon: '🃏', label: '卡战备系统' },
-    { path: '/map', icon: '🗺️', label: '官方地图工具' },
-    { path: '/admin', icon: '⚙️', label: '管理后台' },
+    { path: '/', icon: '🏠', label: t('首页') },
+    { path: '/streamers', icon: '🎙️', label: t('主播同款改枪码') },
+    { path: '/official', icon: '🔥', label: t('官方热门改枪码') },
+    { path: '/community', icon: '🌐', label: t('玩家社区') },
+    { path: '/daily', icon: '🔑', label: t('每日密码') },
+    { path: '/profit', icon: '💰', label: t('特勤处制造利润') },
+    { path: '/prices', icon: '📈', label: t('价格走势图') },
+    { path: '/items', icon: '📖', label: t('物品图鉴') },
+    { path: '/cards', icon: '🃏', label: t('卡战备系统') },
+    { path: '/map', icon: '🗺️', label: t('官方地图工具') },
+    { path: '/admin', icon: '⚙️', label: t('管理后台') },
   ];
 
   const isActive = (path) => {
@@ -47,7 +49,7 @@ function App() {
         <div className="sidebar-header">
           <Link to="/" className="sidebar-logo" onClick={() => setSidebarOpen(false)}>
             <img src="/logo.png" alt="logo" className="sidebar-logo-img" onError={e => { e.target.style.display = 'none'; }} />
-            {!sidebarCollapsed && <span className="sidebar-logo-text">有力气的改枪</span>}
+            {!sidebarCollapsed && <span className="sidebar-logo-text">{t('有力气的改枪')}</span>}
           </Link>
         </div>
         <nav className="sidebar-nav">
@@ -72,9 +74,9 @@ function App() {
           </button>
           <Link to="/" className="topbar-logo">
             <img src="/logo.png" alt="" style={{ height: 26, width: 26, objectFit: 'contain', borderRadius: 4 }} onError={e => { e.target.style.display = 'none'; }} />
-            <span>有力气的改枪网站</span>
+            <span>{t('有力气的改枪网站')}</span>
           </Link>
-          <div style={{ width: 36 }}></div>
+          <LanguageSwitcher />
         </header>
         <main className="main-content">
           <Routes>
@@ -96,9 +98,9 @@ function App() {
           borderTop: '1px solid var(--border)', padding: '16px 28px',
           display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap',
         }}>
-          <Link to="/legal?tab=privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>隐私政策</Link>
-          <Link to="/legal?tab=terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>使用条款</Link>
-          <Link to="/legal?tab=cookie" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Cookie 政策</Link>
+          <Link to="/legal?tab=privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{t('隐私政策')}</Link>
+          <Link to="/legal?tab=terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{t('使用条款')}</Link>
+          <Link to="/legal?tab=cookie" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{t('Cookie 政策')}</Link>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>© 2026 YufanTechs</span>
         </footer>
       </div>
