@@ -53,19 +53,21 @@ export function useT() {
   return useContext(I18nContext);
 }
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ dropUp = false, fullWidth = false }) {
   const { lang, setLang } = useT();
   const [open, setOpen] = useState(false);
   const current = LANGS.find(l => l.code === lang) || LANGS[0];
 
   return (
-    <div className="lang-switcher" style={{ position: 'relative' }}>
+    <div className="lang-switcher" style={{ position: 'relative', width: fullWidth ? '100%' : 'auto' }}>
       <button
         className="lang-btn"
         onClick={() => setOpen(o => !o)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
+          justifyContent: fullWidth ? 'center' : 'flex-start',
+          width: fullWidth ? '100%' : 'auto',
           background: 'transparent', border: '1px solid var(--border, #1a3048)',
           color: 'var(--text, #d0e8f0)', borderRadius: 6, padding: '5px 10px',
           fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
@@ -73,12 +75,14 @@ export function LanguageSwitcher() {
       >
         <span>🌐</span>
         <span>{current.label}</span>
-        <span style={{ fontSize: 9, opacity: 0.7 }}>▼</span>
+        <span style={{ fontSize: 9, opacity: 0.7 }}>{dropUp ? '▲' : '▼'}</span>
       </button>
       {open && (
         <div
           style={{
-            position: 'absolute', top: '110%', right: 0, zIndex: 1000,
+            position: 'absolute', zIndex: 1000,
+            ...(dropUp ? { bottom: '110%' } : { top: '110%' }),
+            ...(fullWidth ? { left: 0, right: 0 } : { right: 0 }),
             background: 'var(--bg-card, #0c1a2a)', border: '1px solid var(--border, #1a3048)',
             borderRadius: 8, padding: 4, minWidth: 130,
             boxShadow: '0 8px 24px rgba(0,0,0,0.4)',

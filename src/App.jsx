@@ -63,6 +63,11 @@ function App() {
             </Link>
           ))}
         </nav>
+        {!sidebarCollapsed && (
+          <div style={{ padding: '0 12px 10px' }}>
+            <LanguageSwitcher dropUp fullWidth />
+          </div>
+        )}
         <button className="sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
           {sidebarCollapsed ? '▶' : '◀'}
         </button>
