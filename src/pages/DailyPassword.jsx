@@ -10,6 +10,7 @@ const MAPS = [
   { id: 3, name: '巴克什', icon: '🏜️', color: '#e0a030' },
   { id: 4, name: '航天基地', icon: '🚀', color: '#d050d0' },
   { id: 5, name: '潮汐监狱', icon: '⛓️', color: '#e06040' },
+  { id: 6, name: 'AZ3', icon: '🛰️', color: '#40d0c0' },
 ];
 
 function DailyPassword() {
@@ -59,7 +60,7 @@ function DailyPassword() {
       document.execCommand('copy'); document.body.removeChild(ta);
     });
     setCopied(name);
-    toast.success(t('{name} 密码已复制！', { name }));
+    toast.success(t('{name} 密码已复制！', { name: t(name) }));
     setTimeout(() => setCopied(''), 1500);
   }
 
@@ -136,7 +137,7 @@ function DailyPassword() {
 
                 <div style={{ fontSize: 32, marginBottom: 8 }}>{map.icon}</div>
                 <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>
-                  {pw.map_name}
+                  {t(pw.map_name)}
                 </div>
 
                 {/* 每位数字单独显示 */}

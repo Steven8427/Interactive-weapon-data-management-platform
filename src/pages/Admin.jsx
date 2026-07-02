@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
+import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
 
 const PW_MAPS = [
   { id: 1, name: '零号大坝', icon: '🏗️', color: '#20e870' },
@@ -8,6 +9,7 @@ const PW_MAPS = [
   { id: 3, name: '巴克什', icon: '🏜️', color: '#e0a030' },
   { id: 4, name: '航天基地', icon: '🚀', color: '#d050d0' },
   { id: 5, name: '潮汐监狱', icon: '⛓️', color: '#e06040' },
+  { id: 6, name: 'AZ3', icon: '🛰️', color: '#40d0c0' },
 ];
 
 const API_CLASS_TO_CAT = {
@@ -114,10 +116,10 @@ function Admin({ isAdmin, setIsAdmin }) {
     setCurrentPw(data); const inputs = {}; data.forEach(p => { inputs[p.map_id] = p.secret; }); setPwInputs(inputs);
   }, []);
 
-  const fetchAdmins = useCallback(async () => { const { data } = await supabase.from('admins').select('*').order('created_at'); setAllAdmins(data || []); }, []);
+  const fetchAdmins = useCallback(async () => { const { data } = await supabase.from('admins').select('id, username, role, author_id, display_name, created_at').order('created_at'); setAllAdmins(data || []); }, []);
   const fetchReviews = useCallback(async () => { const { data } = await supabase.from('profile_reviews').select('*').eq('status', 'pending').order('created_at'); setReviews(data || []); }, []);
   const fetchCommunity = useCallback(async () => {
-    const { data: ps } = await supabase.from('players').select('*').order('created_at');
+    const { data: ps } = await supabase.from('players').select('id, username, nickname, avatar_url, description, created_at, profile_status').order('created_at');
     setCommunityPlayers(ps || []);
     const { data: gd } = await supabase.from('guns').select('player_id, id');
     const { data: vd } = await supabase.from('gun_variants').select('gun_id');
@@ -149,7 +151,7 @@ function Admin({ isAdmin, setIsAdmin }) {
   }, []);
 
   const fetchPendingProfiles = useCallback(async () => {
-    const { data } = await supabase.from('players').select('*').eq('profile_status', 'pending').order('created_at');
+    const { data } = await supabase.from('players').select('id, username, nickname, avatar_url, description, created_at, profile_status, pending_nickname, pending_description, pending_avatar_url').eq('profile_status', 'pending').order('created_at');
     setPendingProfiles(data || []);
   }, []);
 
@@ -206,11 +208,16 @@ function Admin({ isAdmin, setIsAdmin }) {
 
   async function handleLogin(e) {
     e.preventDefault();
-    const { data, error } = await supabase.from('admins').select('*').eq('username', username).eq('password_hash', password).single();
-    if (error || !data) { toast.error('用户名或密码错误'); return; }
-    const info = { id: data.id, role: data.role || 'admin', author_id: data.author_id, display_name: data.display_name || data.username, loginAt: Date.now() };
+    const uname = (username || '').trim();
+    const lockMs = authLockRemaining('admin:' + uname);
+    if (lockMs > 0) { toast.error(`登录尝试过多，请 ${lockMinutes(lockMs)} 分钟后再试`); return; }
+    const { data, error } = await supabase.rpc('admin_login', { p_username: uname, p_password: password });
+    const rec = Array.isArray(data) ? data[0] : data;
+    if (error || !rec) { recordAuthFail('admin:' + uname); toast.error('用户名或密码错误'); return; }
+    clearAuthFail('admin:' + uname);
+    const info = { id: rec.id, role: rec.role || 'admin', author_id: rec.author_id, display_name: rec.display_name || rec.username, loginAt: Date.now() };
     setAdminInfo(info); localStorage.setItem('df_admin', JSON.stringify(info));
-    setIsAdmin(true); toast.success(`欢迎，${data.display_name || data.username}！`);
+    setIsAdmin(true); toast.success(`欢迎，${rec.display_name || rec.username}！`);
   }
 
   async function uploadImage(file) {
@@ -265,7 +272,7 @@ function Admin({ isAdmin, setIsAdmin }) {
   const sf = 'https://iugcmnqglxrcmdodugqk.supabase.co/functions/v1/';
   async function refreshData(name) { setDataRefresh(p => ({...p,[name]:true})); try { const r = await (await fetch(sf+name)).json(); toast.success(r.success?'更新成功！':'失败'); } catch { toast.error('失败'); } setDataRefresh(p => ({...p,[name]:false})); }
 
-  async function addNewAdmin() { if (!newAdmin.username.trim()||!newAdmin.password.trim()) { toast.error('必填'); return; } if (newAdmin.role==='admin'&&!newAdmin.author_id) { toast.error('关联作者'); return; } const { error } = await supabase.from('admins').insert({ username: newAdmin.username.trim(), password_hash: newAdmin.password, role: newAdmin.role, author_id: newAdmin.role==='admin'?newAdmin.author_id:null, display_name: newAdmin.display_name.trim()||newAdmin.username.trim() }); if (error) { toast.error(error.message); return; } toast.success('添加成功！'); setNewAdmin({ username:'',password:'',role:'admin',author_id:'',display_name:'' }); fetchAdmins(); }
+  async function addNewAdmin() { if (!newAdmin.username.trim()||!newAdmin.password.trim()) { toast.error('必填'); return; } if (newAdmin.password.length < 6) { toast.error('密码至少6位'); return; } if (newAdmin.role==='admin'&&!newAdmin.author_id) { toast.error('关联作者'); return; } const { error } = await supabase.rpc('admin_create', { p_username: newAdmin.username.trim(), p_password: newAdmin.password, p_role: newAdmin.role, p_author_id: newAdmin.role==='admin'?newAdmin.author_id:null, p_display_name: newAdmin.display_name.trim() }); if (error) { toast.error(/username_taken/.test(error.message) ? '用户名已存在' : '添加失败'); return; } toast.success('添加成功！'); setNewAdmin({ username:'',password:'',role:'admin',author_id:'',display_name:'' }); fetchAdmins(); }
   async function deleteAdmin(id, n) { if (!window.confirm(`删除 ${n}？`)) return; await supabase.from('admins').delete().eq('id', id); toast.success('已删除'); fetchAdmins(); }
 
   async function submitProfileEdit() { if (!profileEdit.name.trim()) return; setProfileSubmitting(true); let url = null; try { if (profileAvatar) url = await uploadImage(profileAvatar); } catch { setProfileSubmitting(false); return; } await supabase.from('profile_reviews').insert({ admin_id: adminInfo.id, author_id: adminInfo.author_id, new_name: profileEdit.name.trim(), new_avatar_url: url, new_description: profileEdit.description.trim(), status: 'pending' }); toast.success('已提交审核！'); setProfileAvatar(null); setProfileSubmitting(false); }

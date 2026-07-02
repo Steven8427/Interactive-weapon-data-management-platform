@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
+import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
 
 const CATS = ["全部","突击步枪","战斗步枪","射手步枪","冲锋枪","机枪","狙击步枪","连狙","霰弹枪","手枪","弓弩"];
 const CAT_ICON = {"突击步枪":"🔫","战斗步枪":"⚔️","射手步枪":"🎯","冲锋枪":"💨","机枪":"🔥","狙击步枪":"🔭","连狙":"🎯","霰弹枪":"💥","手枪":"🔫","弓弩":"🏹"};
@@ -82,7 +83,7 @@ function Community() {
   // Fetch player list with gun stats
   const fetchPlayerList = useCallback(async () => {
     setLoading(true);
-    const { data: ps } = await supabase.from('players').select('*').order('created_at');
+    const { data: ps } = await supabase.from('players').select('id, username, nickname, avatar_url, description, created_at, profile_status').order('created_at');
     setAllPlayers(ps || []);
     // Get gun counts per player
     const { data: gunData } = await supabase.from('guns').select('player_id, id');
@@ -120,6 +121,7 @@ function Community() {
   // Auth handlers
   async function handleAuth(e) {
     e.preventDefault();
+    const uname = authForm.username.trim().toLowerCase();
     if (authMode === 'register') {
       if (!agreeTerms) { toast.error(t('请先同意用户协议')); return; }
       if (!authForm.username.trim() || !authForm.password.trim()) { toast.error(t('用户名和密码必填')); return; }
@@ -131,15 +133,19 @@ function Community() {
         const nickCheck = checkContent(authForm.nickname.trim());
         if (nickCheck) { toast.error(t('昵称{msg}', { msg: nickCheck })); return; }
       }
-      const { data: exists } = await supabase.from('players').select('id').eq('username', authForm.username.trim().toLowerCase()).single();
-      if (exists) { toast.error(t('用户名已存在')); return; }
-      const { data, error } = await supabase.from('players').insert({ username: authForm.username.trim().toLowerCase(), password_hash: authForm.password, nickname: authForm.nickname.trim() || authForm.username.trim() }).select().single();
-      if (error) { toast.error(t('注册失败')); return; }
-      setPlayer(data); localStorage.setItem('df_player', JSON.stringify(data)); toast.success(t('注册成功！')); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false); setAgreeTerms(false); fetchPlayerList();
+      const { data, error } = await supabase.rpc('player_register', { p_username: uname, p_password: authForm.password, p_nickname: authForm.nickname.trim() });
+      if (error) { toast.error(/username_taken/.test(error.message) ? t('用户名已存在') : t('注册失败')); return; }
+      const rec = Array.isArray(data) ? data[0] : data;
+      if (!rec) { toast.error(t('注册失败')); return; }
+      setPlayer(rec); localStorage.setItem('df_player', JSON.stringify(rec)); toast.success(t('注册成功！')); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false); setAgreeTerms(false); fetchPlayerList();
     } else {
-      const { data, error } = await supabase.from('players').select('*').eq('username', authForm.username.trim().toLowerCase()).eq('password_hash', authForm.password).single();
-      if (error || !data) { toast.error(t('用户名或密码错误')); return; }
-      setPlayer(data); localStorage.setItem('df_player', JSON.stringify(data)); toast.success(t('欢迎，{name}！', { name: data.nickname || data.username })); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false);
+      const lockMs = authLockRemaining(uname);
+      if (lockMs > 0) { toast.error(t('登录尝试过多，请 {n} 分钟后再试', { n: lockMinutes(lockMs) })); return; }
+      const { data, error } = await supabase.rpc('player_login', { p_username: uname, p_password: authForm.password });
+      const rec = Array.isArray(data) ? data[0] : data;
+      if (error || !rec) { recordAuthFail(uname); toast.error(t('用户名或密码错误')); return; }
+      clearAuthFail(uname);
+      setPlayer(rec); localStorage.setItem('df_player', JSON.stringify(rec)); toast.success(t('欢迎，{name}！', { name: rec.nickname || rec.username })); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false);
     }
   }
   function logout() { setPlayer(null); localStorage.removeItem('df_player'); toast.success(t('已退出')); }

@@ -38,7 +38,7 @@ function Landing() {
   function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function formatNum(n) { if (!n) return '0'; if (n >= 10000) return (n / 10000).toFixed(1) + 'w'; if (n >= 1000) return (n / 1000).toFixed(1) + 'k'; return String(n); }
   function formatPrice(n) { if (!n) return '-'; if (n >= 10000) return (n / 10000).toFixed(1) + 'w'; return n.toLocaleString(); }
-  const PW_META = { '零号大坝': { icon: '🏗️', color: '#20e870' }, '长弓溪谷': { icon: '🏔️', color: '#18a0d0' }, '巴克什': { icon: '🏜️', color: '#e0a030' }, '航天基地': { icon: '🚀', color: '#d050d0' }, '潮汐监狱': { icon: '⛓️', color: '#e06040' } };
+  const PW_META = { '零号大坝': { icon: '🏗️', color: '#20e870' }, '长弓溪谷': { icon: '🏔️', color: '#18a0d0' }, '巴克什': { icon: '🏜️', color: '#e0a030' }, '航天基地': { icon: '🚀', color: '#d050d0' }, '潮汐监狱': { icon: '⛓️', color: '#e06040' }, 'AZ3': { icon: '🛰️', color: '#40d0c0' } };
 
   if (loading) return <div className="loading"><div className="spinner"></div>{t('加载中...')}</div>;
 
@@ -84,7 +84,7 @@ function Landing() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
           {passwords.map(pw => { const m = PW_META[pw.map_name] || { icon: '🗺️', color: '#20e870' }; return (
             <div key={pw.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
-              <div style={{ fontSize: 18, marginBottom: 2 }}>{m.icon}</div><div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{pw.map_name}</div>
+              <div style={{ fontSize: 18, marginBottom: 2 }}>{m.icon}</div><div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{t(pw.map_name)}</div>
               <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 22, fontWeight: 900, color: m.color, letterSpacing: 3 }}>{pw.secret}</div>
             </div>); })}
         </div>
