@@ -85,7 +85,7 @@ function OfficialCodes() {
       </p>
 
       <div className="filter-bar">
-        {categories.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : c}</button>)}
+        {categories.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : t(c)}</button>)}
       </div>
 
       <div className="search-row">
@@ -119,7 +119,7 @@ function OfficialCodes() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{code.name}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, flexWrap: 'wrap' }}>
-                      <span style={{ padding: '1px 6px', borderRadius: 6, background: `${catC}15`, color: catC, border: `1px solid ${catC}30`, fontWeight: 600 }}>{code.arms_category}</span>
+                      <span style={{ padding: '1px 6px', borderRadius: 6, background: `${catC}15`, color: catC, border: `1px solid ${catC}30`, fontWeight: 600 }}>{t(code.arms_category)}</span>
                       <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{formatPrice(code.price)}</span>
                     </div>
                   </div>

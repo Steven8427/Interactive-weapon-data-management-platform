@@ -225,7 +225,7 @@ function PriceTrend() {
                     background: `${CAT_COLORS[selectedItem.category] || '#20e870'}15`,
                     color: CAT_COLORS[selectedItem.category] || '#20e870',
                     border: `1px solid ${CAT_COLORS[selectedItem.category] || '#20e870'}30`,
-                  }}>{selectedItem.category}</span>
+                  }}>{t(selectedItem.category)}</span>
                 )}
                 <span style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Orbitron', monospace", color: '#20e870' }}>
                   {formatFullPrice(selectedItem.avg_price)}
@@ -243,7 +243,7 @@ function PriceTrend() {
         {CATEGORIES.map(c => (
           <button key={c.key} className={`filter-chip ${selectedCat === c.key ? 'active' : ''}`}
             onClick={() => setSelectedCat(c.key)}>
-            {c.icon} {c.key === 'all' ? t('全部') : c.name}
+            {c.icon} {c.key === 'all' ? t('全部') : t(c.name)}
           </button>
         ))}
       </div>
@@ -306,7 +306,7 @@ function PriceTrend() {
                     <span style={{
                       fontSize: 10, padding: '1px 6px', borderRadius: 6, fontWeight: 600,
                       background: `${color}12`, color, border: `1px solid ${color}25`,
-                    }}>{item.category}</span>
+                    }}>{t(item.category)}</span>
                   )}
                 </div>
 

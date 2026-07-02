@@ -374,7 +374,7 @@ function Community() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     {selectedGun.image_url && <img src={selectedGun.image_url} alt="" style={{ width: 40, height: 30, objectFit: 'contain', borderRadius: 5, background: 'linear-gradient(135deg,#1a2a3a,#1e3040)' }} />}
                     <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--accent)' }}>{selectedGun.name}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{selectedGun.category}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t(selectedGun.category)}</span>
                   </div>
                   <div className="form-row">
                     <div className="form-group"><label>{t('段位')}</label><select value={variantForm.version} onChange={e => setVariantForm({ ...variantForm, version: e.target.value })}><option value="">{t('不选')}</option>{['T0','T1','T2','T3','T4','狙击','连狙','手枪','弓弩'].map(ver => <option key={ver}>{ver}</option>)}</select></div>
@@ -392,7 +392,7 @@ function Community() {
 
         {/* 分类筛选 */}
         <div className="filter-bar">
-          {CATS.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : `${CAT_ICON[c] || ''} ${c}`}</button>)}
+          {CATS.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : `${CAT_ICON[c] || ''} ${t(c)}`}</button>)}
         </div>
 
         {/* 搜索+段位+排序 */}
@@ -420,7 +420,7 @@ function Community() {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                       <span className="gun-name">{gun.name}</span>
-                      <span className="cat-badge" style={{ background: `${catC}18`, color: catC, border: `1px solid ${catC}33` }}>{CAT_ICON[gun.category] || ''} {gun.category}</span>
+                      <span className="cat-badge" style={{ background: `${catC}18`, color: catC, border: `1px solid ${catC}33` }}>{CAT_ICON[gun.category] || ''} {t(gun.category)}</span>
                     </div>
                     <div className="gun-count">{t('{n} 个配置方案', { n: gun.variants.length })}</div>
                   </div>
