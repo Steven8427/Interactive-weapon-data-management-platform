@@ -19,7 +19,7 @@ function Landing() {
       setLoading(true);
       const [{ data: codes }, { data: pwData }, { data: mfgData }, { count: gunCount }, { count: variantCount }] = await Promise.all([
         supabase.from('official_gun_codes').select('*').order('apply_num', { ascending: false }).limit(6),
-        supabase.from('daily_passwords').select('*').order('date', { ascending: false }).order('map_id').limit(5),
+        supabase.from('daily_passwords').select('*').order('date', { ascending: false }).order('map_id').limit(6),
         supabase.from('manufacturing_items').select('*').order('profit', { ascending: false }).limit(4),
         supabase.from('guns').select('*', { count: 'exact', head: true }),
         supabase.from('gun_variants').select('*', { count: 'exact', head: true }),
