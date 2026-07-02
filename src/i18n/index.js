@@ -5,6 +5,9 @@ const STORAGE_KEY = 'site_lang';
 
 function detectDefault() {
   try {
+    // 1) explicit ?lang= in the URL wins (used by hreflang / crawlers / shared links)
+    const q = new URLSearchParams(window.location.search).get('lang');
+    if (q && LANGS.some(l => l.code === q)) return q;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && LANGS.some(l => l.code === saved)) return saved;
     const nav = (navigator.language || 'zh').toLowerCase();
