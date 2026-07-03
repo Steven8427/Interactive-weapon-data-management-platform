@@ -1,0 +1,120 @@
+/* eslint-disable */
+// Per-route, per-language SEO content used by generate-seo.js to emit
+// static HTML for every language variant (zh default + en/ja/ko/zh-TW).
+// Each entry: { title, desc, h1, intro }.
+
+module.exports = {
+  '/': {
+    prio: '1.0', freq: 'daily',
+    zh: {
+      title: '有力气的改枪网站 - 三角洲改枪码大全 | 三角洲行动改枪 · 每日密码 · 制造利润',
+      desc: '三角洲改枪码大全，三角洲行动(Delta Force)最全工具站：官方热门改枪码、主播同款改枪码、每日密码、特勤处制造利润、物品价格走势、卡战备推荐，一键复制改枪码。',
+      h1: '有力气的改枪网站 — 三角洲改枪码大全',
+      intro: '专注三角洲行动(Delta Force)改枪的一站式工具站。收录官方热门改枪码、主播同款改枪码，提供每日密码查询、特勤处制造利润计算、物品价格走势图与卡战备配装推荐。所有三角洲改枪码均可一键复制，直接导入游戏。',
+    },
+    en: {
+      title: 'Delta Force Gun Codes - Build Codes, Daily Codes & Crafting Profit',
+      desc: 'The all-in-one Delta Force toolkit: official hot build codes, streamer builds, daily map codes, crafting profit calculator, item price trends and loadout picks. Copy any gun code with one tap.',
+      h1: 'Delta Force Gun Codes — Build Code Hub',
+      intro: 'A one-stop toolkit for Delta Force weapon builds: official hot build codes, streamer builds, daily map codes, crafting-profit analysis, item price trends and loadout recommendations. Every build code copies in one tap.',
+    },
+    ja: {
+      title: 'デルタフォース 改造コード大全 - ビルドコード・毎日コード・製造利益',
+      desc: 'デルタフォース(Delta Force)のオールインワンツール：公式人気改造コード、配信者の改造コード、毎日のマップコード、製造利益計算、価格推移、装備おすすめ。改造コードはワンタップでコピー。',
+      h1: 'デルタフォース 改造コード大全',
+      intro: 'デルタフォースの武器ビルドに特化したツールサイト。公式人気コード、配信者コード、毎日のマップコード、製造利益計算、価格推移、装備おすすめを提供。改造コードはワンタップでコピーできます。',
+    },
+    ko: {
+      title: '델타포스 건 코드 모음 - 세팅 코드 · 일일 코드 · 제작 수익',
+      desc: '델타포스(Delta Force) 올인원 도구: 공식 인기 세팅 코드, 스트리머 세팅, 일일 지도 코드, 제작 수익 계산, 가격 추이, 장비 추천. 세팅 코드를 원터치 복사.',
+      h1: '델타포스 건 코드 모음',
+      intro: '델타포스 무기 세팅에 특화된 도구 사이트. 공식 인기 코드, 스트리머 코드, 일일 지도 코드, 제작 수익 계산, 가격 추이, 장비 추천을 제공합니다. 세팅 코드는 원터치로 복사할 수 있습니다.',
+    },
+    'zh-TW': {
+      title: '有力氣的改槍網站 - 三角洲改槍碼大全 | 三角洲行動改槍 · 每日密碼 · 製造利潤',
+      desc: '三角洲改槍碼大全，三角洲行動(Delta Force)最全工具站：官方熱門改槍碼、主播同款改槍碼、每日密碼、特勤處製造利潤、物品價格走勢、卡戰備推薦，一鍵複製改槍碼。',
+      h1: '有力氣的改槍網站 — 三角洲改槍碼大全',
+      intro: '專注三角洲行動(Delta Force)改槍的一站式工具站。收錄官方熱門改槍碼、主播同款改槍碼，提供每日密碼查詢、特勤處製造利潤計算、物品價格走勢圖與卡戰備配裝推薦。所有三角洲改槍碼均可一鍵複製，直接匯入遊戲。',
+    },
+  },
+  '/streamers': {
+    prio: '0.9', freq: 'daily',
+    zh: { title: '主播同款改枪码 - 三角洲改枪 | 有力气的改枪网站', desc: '三角洲行动主播同款改枪码合集，36+ 位人气主播的三角洲改枪方案，武器配置与配件一键复制使用。', h1: '三角洲行动主播同款改枪码', intro: '汇集三角洲行动众多人气主播的同款改枪码与武器配置方案。按主播浏览其全部三角洲改枪码，查看配件明细与价格，一键复制导入游戏。' },
+    en: { title: 'Streamer Builds - Delta Force Weapon Setups | Delta Force Gun Codes', desc: 'Delta Force streamer build codes: weapon setups from 36+ popular streamers, copy the gun code and attachments with one tap.', h1: 'Delta Force Streamer Build Codes', intro: 'Weapon builds from popular Delta Force streamers. Browse each streamer\'s full set of build codes, view attachment details and prices, and copy any code with one tap.' },
+    ja: { title: '配信者の改造コード - デルタフォース | デルタフォース 改造コード', desc: 'デルタフォース配信者の改造コード集。人気配信者36名以上の武器構成をワンタップでコピー。', h1: 'デルタフォース 配信者の改造コード', intro: '人気配信者の武器構成をまとめて掲載。配信者ごとに全改造コードを閲覧し、アタッチメント詳細と価格を確認、ワンタップでコピーできます。' },
+    ko: { title: '스트리머 세팅 코드 - 델타포스 | 델타포스 건 코드', desc: '델타포스 스트리머 세팅 코드 모음. 인기 스트리머 36명 이상의 무기 세팅을 원터치 복사.', h1: '델타포스 스트리머 세팅 코드', intro: '인기 스트리머의 무기 세팅을 한곳에 모았습니다. 스트리머별 전체 세팅 코드를 보고 부착물 상세와 가격을 확인해 원터치로 복사하세요.' },
+    'zh-TW': { title: '主播同款改槍碼 - 三角洲改槍 | 有力氣的改槍網站', desc: '三角洲行動主播同款改槍碼合集，36+ 位人氣主播的三角洲改槍方案，武器配置與配件一鍵複製使用。', h1: '三角洲行動主播同款改槍碼', intro: '匯集三角洲行動眾多人氣主播的同款改槍碼與武器配置方案。按主播瀏覽其全部三角洲改槍碼，查看配件明細與價格，一鍵複製匯入遊戲。' },
+  },
+  '/official': {
+    prio: '0.9', freq: 'daily',
+    zh: { title: '官方热门改枪码 - 三角洲行动改枪排行 | 有力气的改枪网站', desc: '三角洲行动官方社区热门改枪码，按使用量排行，含完整配件列表与价格，每 6 小时自动同步更新。', h1: '三角洲行动官方热门改枪码', intro: '实时同步三角洲行动官方社区的热门改枪码，按使用量与点赞排序，附完整配件清单和交易行价格。找当前最强三角洲改枪方案，一键复制。' },
+    en: { title: 'Official Hot Codes - Delta Force Build Ranking | Delta Force Gun Codes', desc: 'Delta Force official community hot build codes ranked by usage, with full attachment lists and prices, auto-synced every 6 hours.', h1: 'Delta Force Official Hot Build Codes', intro: 'Live-synced hot build codes from the Delta Force official community, ranked by usage and likes, with full attachment lists and market prices. Find the strongest current builds and copy in one tap.' },
+    ja: { title: '公式人気コード - デルタフォース改造ランキング | デルタフォース 改造コード', desc: 'デルタフォース公式コミュニティの人気改造コード。使用数順、アタッチメント一覧と価格付き、6時間ごとに自動同期。', h1: 'デルタフォース 公式人気改造コード', intro: 'デルタフォース公式コミュニティの人気改造コードをリアルタイム同期。使用数といいね順に並べ、アタッチメント一覧と取引所価格を掲載。最強の構成をワンタップでコピー。' },
+    ko: { title: '공식 인기 코드 - 델타포스 세팅 랭킹 | 델타포스 건 코드', desc: '델타포스 공식 커뮤니티 인기 세팅 코드. 사용량순 정렬, 전체 부착물 목록과 가격 포함, 6시간마다 자동 동기화.', h1: '델타포스 공식 인기 세팅 코드', intro: '델타포스 공식 커뮤니티의 인기 세팅 코드를 실시간 동기화. 사용량과 좋아요순으로 정렬하고 전체 부착물 목록과 거래소 가격을 제공합니다. 최강 세팅을 원터치로 복사하세요.' },
+    'zh-TW': { title: '官方熱門改槍碼 - 三角洲行動改槍排行 | 有力氣的改槍網站', desc: '三角洲行動官方社群熱門改槍碼，按使用量排行，含完整配件列表與價格，每 6 小時自動同步更新。', h1: '三角洲行動官方熱門改槍碼', intro: '即時同步三角洲行動官方社群的熱門改槍碼，按使用量與按讚排序，附完整配件清單和交易行價格。找當前最強三角洲改槍方案，一鍵複製。' },
+  },
+  '/community': {
+    prio: '0.8', freq: 'daily',
+    zh: { title: '玩家社区 - 三角洲改枪码分享 | 有力气的改枪网站', desc: '三角洲行动玩家改枪码分享社区，注册即可发布你的三角洲改枪方案，交流改枪心得，浏览其他玩家的武器配置。', h1: '三角洲行动玩家改枪社区', intro: '玩家自建的三角洲改枪码分享社区。注册后可发布自己的武器改枪方案，浏览、复制其他玩家分享的三角洲行动改枪码。' },
+    en: { title: 'Community - Share Your Delta Force Builds | Delta Force Gun Codes', desc: 'Delta Force player community for sharing gun codes. Register to post your own builds, browse and copy other players\' weapon setups.', h1: 'Delta Force Player Community', intro: 'A player-built community for sharing Delta Force gun codes. Register to post your own weapon builds, and browse or copy build codes shared by other players.' },
+    ja: { title: 'コミュニティ - デルタフォース改造コード共有 | デルタフォース 改造コード', desc: 'デルタフォースの改造コード共有コミュニティ。登録して自分の構成を投稿、他プレイヤーの武器構成を閲覧・コピー。', h1: 'デルタフォース プレイヤーコミュニティ', intro: 'デルタフォースの改造コードを共有するプレイヤーコミュニティ。登録して自分の武器構成を投稿し、他プレイヤーが共有した改造コードを閲覧・コピーできます。' },
+    ko: { title: '커뮤니티 - 델타포스 세팅 코드 공유 | 델타포스 건 코드', desc: '델타포스 플레이어 세팅 코드 공유 커뮤니티. 가입하여 내 세팅을 올리고 다른 플레이어의 무기 세팅을 보고 복사하세요.', h1: '델타포스 플레이어 커뮤니티', intro: '델타포스 세팅 코드를 공유하는 플레이어 커뮤니티. 가입 후 내 무기 세팅을 게시하고, 다른 플레이어가 공유한 세팅 코드를 보거나 복사할 수 있습니다.' },
+    'zh-TW': { title: '玩家社群 - 三角洲改槍碼分享 | 有力氣的改槍網站', desc: '三角洲行動玩家改槍碼分享社群，註冊即可發布你的三角洲改槍方案，交流改槍心得，瀏覽其他玩家的武器配置。', h1: '三角洲行動玩家改槍社群', intro: '玩家自建的三角洲改槍碼分享社群。註冊後可發布自己的武器改槍方案，瀏覽、複製其他玩家分享的三角洲行動改槍碼。' },
+  },
+  '/daily': {
+    prio: '0.8', freq: 'daily',
+    zh: { title: '每日密码 - 三角洲行动地图密码查询 | 有力气的改枪网站', desc: '三角洲行动每日地图密码查询，零号大坝、长弓溪谷、巴克什、航天基地、潮汐监狱、AZ3 每日更新，点击即可复制。', h1: '三角洲行动每日密码', intro: '每日更新三角洲行动各地图的电台/门禁密码，覆盖零号大坝、长弓溪谷、巴克什、航天基地、潮汐监狱、AZ3 等地图，点击卡片即可复制。' },
+    en: { title: 'Daily Codes - Delta Force Map Codes | Delta Force Gun Codes', desc: 'Delta Force daily map codes for Zero Dam, Longbow Valley, Brakkesh, Space City, Tide Prison and AZ3, updated daily, tap to copy.', h1: 'Delta Force Daily Map Codes', intro: 'Daily-updated station/access codes for every Delta Force map, including Zero Dam, Longbow Valley, Brakkesh, Space City, Tide Prison and AZ3. Tap a card to copy.' },
+    ja: { title: '毎日のコード - デルタフォース マップコード | デルタフォース 改造コード', desc: 'デルタフォース毎日のマップコード。ゼロダム、ロングボウ渓谷、バクシュ、スペースシティ、潮汐監獄、AZ3を毎日更新、タップでコピー。', h1: 'デルタフォース 毎日のマップコード', intro: 'デルタフォース各マップの電波/アクセスコードを毎日更新。ゼロダム、ロングボウ渓谷、バクシュ、スペースシティ、潮汐監獄、AZ3などに対応、カードをタップでコピー。' },
+    ko: { title: '일일 코드 - 델타포스 지도 코드 | 델타포스 건 코드', desc: '델타포스 일일 지도 코드: 제로 댐, 롱보우 계곡, 브라케시, 스페이스 시티, 조석 감옥, AZ3 매일 업데이트, 탭하여 복사.', h1: '델타포스 일일 지도 코드', intro: '델타포스 각 지도의 무전/출입 코드를 매일 업데이트. 제로 댐, 롱보우 계곡, 브라케시, 스페이스 시티, 조석 감옥, AZ3 등을 지원하며 카드를 탭하면 복사됩니다.' },
+    'zh-TW': { title: '每日密碼 - 三角洲行動地圖密碼查詢 | 有力氣的改槍網站', desc: '三角洲行動每日地圖密碼查詢，零號大壩、長弓溪谷、巴克什、航天基地、潮汐監獄、AZ3 每日更新，點擊即可複製。', h1: '三角洲行動每日密碼', intro: '每日更新三角洲行動各地圖的電台/門禁密碼，覆蓋零號大壩、長弓溪谷、巴克什、航天基地、潮汐監獄、AZ3 等地圖，點擊卡片即可複製。' },
+  },
+  '/profit': {
+    prio: '0.8', freq: 'hourly',
+    zh: { title: '特勤处制造利润 - 三角洲行动制造赚钱 | 有力气的改枪网站', desc: '三角洲行动特勤处制造利润计算器，实时成本与收益分析，找到最赚钱的制造方案（技术中心、工作台、制药台、防具台）。', h1: '三角洲行动特勤处制造利润', intro: '实时计算三角洲行动特勤处各制造台（技术中心、工作台、制药台、防具台）的制造利润，按每小时收益排序，帮你找到最赚钱的制造方案。' },
+    en: { title: 'Crafting Profit - Delta Force Crafting Calculator | Delta Force Gun Codes', desc: 'Delta Force Operations crafting profit calculator with real-time cost and profit analysis to find the most profitable recipes (Tech Center, Workbench, Pharmacy, Armor Bench).', h1: 'Delta Force Crafting Profit', intro: 'Real-time crafting-profit calculation for every Delta Force Operations station (Tech Center, Workbench, Pharmacy, Armor Bench), ranked by hourly profit to find the most profitable recipes.' },
+    ja: { title: '製造利益 - デルタフォース製造計算 | デルタフォース 改造コード', desc: 'デルタフォース特務処の製造利益計算機。リアルタイムのコストと利益分析で最も稼げるレシピを発見（テックセンター、ワークベンチ、製薬台、防具台）。', h1: 'デルタフォース 製造利益', intro: 'デルタフォース特務処の各製造施設（テックセンター、ワークベンチ、製薬台、防具台）の製造利益をリアルタイム計算。毎時利益順で最も稼げるレシピを見つけます。' },
+    ko: { title: '제작 수익 - 델타포스 제작 계산기 | 델타포스 건 코드', desc: '델타포스 특무처 제작 수익 계산기. 실시간 비용과 수익 분석으로 가장 돈이 되는 레시피를 찾으세요(기술 센터, 작업대, 제약대, 방어구대).', h1: '델타포스 제작 수익', intro: '델타포스 특무처 각 제작 시설(기술 센터, 작업대, 제약대, 방어구대)의 제작 수익을 실시간 계산. 시간당 수익순으로 가장 수익성 높은 레시피를 찾아줍니다.' },
+    'zh-TW': { title: '特勤處製造利潤 - 三角洲行動製造賺錢 | 有力氣的改槍網站', desc: '三角洲行動特勤處製造利潤計算器，即時成本與收益分析，找到最賺錢的製造方案（技術中心、工作台、製藥台、防具台）。', h1: '三角洲行動特勤處製造利潤', intro: '即時計算三角洲行動特勤處各製造台（技術中心、工作台、製藥台、防具台）的製造利潤，按每小時收益排序，幫你找到最賺錢的製造方案。' },
+  },
+  '/prices': {
+    prio: '0.7', freq: 'daily',
+    zh: { title: '价格走势图 - 三角洲行动物价查询 | 有力气的改枪网站', desc: '三角洲行动物品价格走势图，实时追踪枪械、护甲、配件、子弹等物品的历史价格变化与涨跌幅。', h1: '三角洲行动物品价格走势', intro: '追踪三角洲行动交易行物品价格走势，涵盖枪械、护甲、配件、子弹与医疗物资，查看历史价格曲线与每日涨跌幅。' },
+    en: { title: 'Price Trends - Delta Force Item Prices | Delta Force Gun Codes', desc: 'Delta Force item price trend charts tracking historical prices and daily changes for guns, armor, attachments, ammo and more.', h1: 'Delta Force Item Price Trends', intro: 'Track Delta Force market price trends for guns, armor, attachments, ammo and meds, with historical price curves and daily change rates.' },
+    ja: { title: '価格推移 - デルタフォース物価 | デルタフォース 改造コード', desc: 'デルタフォースのアイテム価格推移グラフ。銃・アーマー・アタッチメント・弾薬などの過去の価格と増減を追跡。', h1: 'デルタフォース アイテム価格推移', intro: 'デルタフォース取引所のアイテム価格推移を追跡。銃、アーマー、アタッチメント、弾薬、医療品を対象に、過去の価格曲線と日次増減率を表示します。' },
+    ko: { title: '가격 추이 - 델타포스 물가 | 델타포스 건 코드', desc: '델타포스 아이템 가격 추이 차트. 총기, 방어구, 부착물, 탄약 등의 과거 가격과 등락을 추적.', h1: '델타포스 아이템 가격 추이', intro: '델타포스 거래소 아이템 가격 추이를 추적. 총기, 방어구, 부착물, 탄약, 의료품을 대상으로 과거 가격 곡선과 일일 등락률을 보여줍니다.' },
+    'zh-TW': { title: '價格走勢圖 - 三角洲行動物價查詢 | 有力氣的改槍網站', desc: '三角洲行動物品價格走勢圖，即時追蹤槍械、護甲、配件、子彈等物品的歷史價格變化與漲跌幅。', h1: '三角洲行動物品價格走勢', intro: '追蹤三角洲行動交易行物品價格走勢，涵蓋槍械、護甲、配件、子彈與醫療物資，查看歷史價格曲線與每日漲跌幅。' },
+  },
+  '/items': {
+    prio: '0.7', freq: 'weekly',
+    zh: { title: '物品图鉴 - 三角洲行动物品数据库 | 有力气的改枪网站', desc: '三角洲行动全物品图鉴百科，收录所有枪械、配件、护甲、装备的详细信息、品级与价格，支持搜索筛选。', h1: '三角洲行动物品图鉴', intro: '三角洲行动全物品数据库，收录枪械、配件、护甲、装备等物品的品级、属性、产出地与参考价格，支持按分类与品级搜索。' },
+    en: { title: 'Item Database - Delta Force Item Catalog | Delta Force Gun Codes', desc: 'Delta Force full item database with details, tiers and prices for every gun, attachment, armor and piece of gear, with search and filters.', h1: 'Delta Force Item Database', intro: 'A full Delta Force item database covering guns, attachments, armor and gear with tier, stats, source and reference price, searchable by category and tier.' },
+    ja: { title: 'アイテム図鑑 - デルタフォース アイテムDB | デルタフォース 改造コード', desc: 'デルタフォース全アイテム図鑑。銃・アタッチメント・アーマー・装備の詳細、品級、価格を掲載、検索・絞り込み対応。', h1: 'デルタフォース アイテム図鑑', intro: 'デルタフォースの全アイテムデータベース。銃、アタッチメント、アーマー、装備の品級、性能、入手場所、参考価格を収録し、カテゴリと品級で検索できます。' },
+    ko: { title: '아이템 도감 - 델타포스 아이템 DB | 델타포스 건 코드', desc: '델타포스 전체 아이템 도감. 모든 총기, 부착물, 방어구, 장비의 상세 정보, 등급, 가격을 수록, 검색·필터 지원.', h1: '델타포스 아이템 도감', intro: '델타포스 전체 아이템 데이터베이스. 총기, 부착물, 방어구, 장비의 등급, 성능, 획득처, 참고 가격을 수록하며 카테고리와 등급으로 검색할 수 있습니다.' },
+    'zh-TW': { title: '物品圖鑑 - 三角洲行動物品資料庫 | 有力氣的改槍網站', desc: '三角洲行動全物品圖鑑百科，收錄所有槍械、配件、護甲、裝備的詳細資訊、品級與價格，支援搜尋篩選。', h1: '三角洲行動物品圖鑑', intro: '三角洲行動全物品資料庫，收錄槍械、配件、護甲、裝備等物品的品級、屬性、產出地與參考價格，支援按分類與品級搜尋。' },
+  },
+  '/cards': {
+    prio: '0.7', freq: 'hourly',
+    zh: { title: '卡战备系统 - 三角洲行动配装推荐 | 有力气的改枪网站', desc: '三角洲行动卡战备配装推荐，不同预算档位的最优枪械、护甲、装备与配件搭配方案，含改枪码。', h1: '三角洲行动卡战备配装', intro: '按预算档位推荐三角洲行动的卡战备配装方案，给出最优枪械、护甲、装备与配件组合及对应改枪码，兼顾性价比。' },
+    en: { title: 'Loadout Cards - Delta Force Loadout Picks | Delta Force Gun Codes', desc: 'Delta Force loadout recommendations by budget tier: the best gun, armor, gear and attachment combos with build codes.', h1: 'Delta Force Loadout Recommendations', intro: 'Loadout recommendations for Delta Force by budget tier, giving the best gun, armor, gear and attachment combinations with matching build codes for the best value.' },
+    ja: { title: '装備カード - デルタフォース装備おすすめ | デルタフォース 改造コード', desc: 'デルタフォースの装備おすすめ。予算帯ごとの最適な銃・アーマー・装備・アタッチメントの組み合わせと改造コード。', h1: 'デルタフォース 装備おすすめ', intro: '予算帯ごとにデルタフォースの装備構成をおすすめ。最適な銃、アーマー、装備、アタッチメントの組み合わせと対応する改造コードを、コスパ重視で提示します。' },
+    ko: { title: '장비 카드 - 델타포스 장비 추천 | 델타포스 건 코드', desc: '델타포스 장비 추천: 예산대별 최적의 총기, 방어구, 장비, 부착물 조합과 세팅 코드.', h1: '델타포스 장비 추천', intro: '예산대별로 델타포스 장비 구성을 추천. 최적의 총기, 방어구, 장비, 부착물 조합과 대응 세팅 코드를 가성비 위주로 제시합니다.' },
+    'zh-TW': { title: '卡戰備系統 - 三角洲行動配裝推薦 | 有力氣的改槍網站', desc: '三角洲行動卡戰備配裝推薦，不同預算檔位的最優槍械、護甲、裝備與配件搭配方案，含改槍碼。', h1: '三角洲行動卡戰備配裝', intro: '按預算檔位推薦三角洲行動的卡戰備配裝方案，給出最優槍械、護甲、裝備與配件組合及對應改槍碼，兼顧性價比。' },
+  },
+  '/map': {
+    prio: '0.6', freq: 'weekly',
+    zh: { title: '官方地图工具 - 三角洲行动互动地图 | 有力气的改枪网站', desc: '三角洲行动官方互动地图，查看物资点、出生点、撤离点、首领坐标等关键信息。', h1: '三角洲行动官方地图工具', intro: '内嵌三角洲行动官方互动地图，查看各地图的物资点、出生点、撤离点与首领坐标，规划路线。' },
+    en: { title: 'Tactical Map - Delta Force Interactive Map | Delta Force Gun Codes', desc: 'Delta Force official interactive map showing loot spots, spawns, extraction points and boss locations.', h1: 'Delta Force Tactical Map', intro: 'The embedded Delta Force official interactive map: view loot spots, spawns, extraction points and boss locations to plan your route.' },
+    ja: { title: 'マップツール - デルタフォース互動マップ | デルタフォース 改造コード', desc: 'デルタフォース公式インタラクティブマップ。物資・出現地点・脱出地点・ボス座標などを確認。', h1: 'デルタフォース 公式マップツール', intro: 'デルタフォース公式インタラクティブマップを埋め込み。各マップの物資、出現地点、脱出地点、ボス座標を確認してルートを計画できます。' },
+    ko: { title: '전술 지도 - 델타포스 인터랙티브 지도 | 델타포스 건 코드', desc: '델타포스 공식 인터랙티브 지도로 물자 지점, 스폰, 탈출 지점, 보스 좌표 등을 확인.', h1: '델타포스 전술 지도', intro: '델타포스 공식 인터랙티브 지도를 임베드. 각 지도의 물자 지점, 스폰, 탈출 지점, 보스 좌표를 확인해 경로를 계획할 수 있습니다.' },
+    'zh-TW': { title: '官方地圖工具 - 三角洲行動互動地圖 | 有力氣的改槍網站', desc: '三角洲行動官方互動地圖，查看物資點、出生點、撤離點、首領座標等關鍵資訊。', h1: '三角洲行動官方地圖工具', intro: '內嵌三角洲行動官方互動地圖，查看各地圖的物資點、出生點、撤離點與首領座標，規劃路線。' },
+  },
+  '/legal': {
+    prio: '0.3', freq: 'monthly',
+    zh: { title: '法律声明 - 隐私政策与使用条款 | 有力气的改枪网站', desc: '有力气的改枪网站的隐私政策、使用条款和 Cookie 政策。', h1: '法律声明', intro: '有力气的改枪网站的隐私政策、使用条款与 Cookie 政策说明。' },
+    en: { title: 'Legal - Privacy Policy & Terms | Delta Force Gun Codes', desc: 'Privacy Policy, Terms of Use and Cookie Policy of Delta Force Gun Codes.', h1: 'Legal Notice', intro: 'The Privacy Policy, Terms of Use and Cookie Policy for Delta Force Gun Codes.' },
+    ja: { title: '法的通知 - プライバシー・利用規約 | デルタフォース 改造コード', desc: 'デルタフォース改造コードのプライバシーポリシー・利用規約・Cookieポリシー。', h1: '法的通知', intro: 'デルタフォース改造コードのプライバシーポリシー、利用規約、Cookieポリシーの説明です。' },
+    ko: { title: '법적 고지 - 개인정보·이용약관 | 델타포스 건 코드', desc: '델타포스 건 코드의 개인정보 처리방침, 이용약관, 쿠키 정책.', h1: '법적 고지', intro: '델타포스 건 코드의 개인정보 처리방침, 이용약관, 쿠키 정책 안내입니다.' },
+    'zh-TW': { title: '法律聲明 - 隱私政策與使用條款 | 有力氣的改槍網站', desc: '有力氣的改槍網站的隱私政策、使用條款和 Cookie 政策。', h1: '法律聲明', intro: '有力氣的改槍網站的隱私政策、使用條款與 Cookie 政策說明。' },
+  },
+};

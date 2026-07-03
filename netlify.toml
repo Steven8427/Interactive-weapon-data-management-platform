@@ -14,7 +14,26 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# SPA fallback - must come last
+# Per-language SPA fallbacks (a static file is served first when it exists;
+# these only catch unknown deep paths so the right language shell loads).
+[[redirects]]
+  from = "/en/*"
+  to = "/en/index.html"
+  status = 200
+[[redirects]]
+  from = "/ja/*"
+  to = "/ja/index.html"
+  status = 200
+[[redirects]]
+  from = "/ko/*"
+  to = "/ko/index.html"
+  status = 200
+[[redirects]]
+  from = "/zh-tw/*"
+  to = "/zh-tw/index.html"
+  status = 200
+
+# Default (zh) SPA fallback - must come last
 [[redirects]]
   from = "/*"
   to = "/index.html"

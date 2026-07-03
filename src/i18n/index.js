@@ -3,9 +3,28 @@ import { translations, LANGS } from './translations';
 
 const STORAGE_KEY = 'site_lang';
 
+// URL path prefix <-> language. zh is the default (no prefix).
+const PREFIX_TO_LANG = { en: 'en', ja: 'ja', ko: 'ko', 'zh-tw': 'zh-TW' };
+const LANG_TO_PREFIX = { en: '/en', ja: '/ja', ko: '/ko', 'zh-TW': '/zh-tw' };
+
+// The url segment for a language ('' for zh default).
+export function langPrefix(code) { return LANG_TO_PREFIX[code] || ''; }
+
+// Resolve the language + router basename from the current URL path prefix.
+export function resolveRoute() {
+  try {
+    const seg = (window.location.pathname.split('/')[1] || '').toLowerCase();
+    if (PREFIX_TO_LANG[seg]) return { lang: PREFIX_TO_LANG[seg], basename: '/' + seg };
+  } catch (e) { /* ignore */ }
+  return { lang: null, basename: '/' };
+}
+
 function detectDefault() {
   try {
-    // 1) explicit ?lang= in the URL wins (used by hreflang / crawlers / shared links)
+    // 1) language path prefix (/en, /ja, /ko, /zh-tw) is authoritative for the page
+    const routed = resolveRoute();
+    if (routed.lang) return routed.lang;
+    // 2) explicit ?lang= in the URL (hreflang / shared links)
     const q = new URLSearchParams(window.location.search).get('lang');
     if (q && LANGS.some(l => l.code === q)) return q;
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -57,9 +76,24 @@ export function useT() {
 }
 
 export function LanguageSwitcher({ dropUp = false, fullWidth = false }) {
-  const { lang, setLang } = useT();
+  const { lang } = useT();
   const [open, setOpen] = useState(false);
   const current = LANGS.find(l => l.code === lang) || LANGS[0];
+
+  // Switching language navigates to the same page under that language's URL
+  // prefix, so the URL is crawlable/shareable and the right static file loads.
+  function switchTo(code) {
+    const { basename } = resolveRoute();
+    let rest = window.location.pathname;
+    if (basename !== '/' && rest.toLowerCase().indexOf(basename.toLowerCase()) === 0) {
+      rest = rest.slice(basename.length) || '/';
+    }
+    if (!rest.startsWith('/')) rest = '/' + rest;
+    let target = langPrefix(code) + (rest === '/' ? '/' : rest);
+    target = target.replace(/\/{2,}/g, '/');
+    try { localStorage.setItem(STORAGE_KEY, code); } catch (e) { /* ignore */ }
+    window.location.assign(target);
+  }
 
   return (
     <div className="lang-switcher" style={{ position: 'relative', width: fullWidth ? '100%' : 'auto' }}>
@@ -94,7 +128,7 @@ export function LanguageSwitcher({ dropUp = false, fullWidth = false }) {
           {LANGS.map(l => (
             <button
               key={l.code}
-              onMouseDown={() => { setLang(l.code); setOpen(false); }}
+              onMouseDown={() => { setOpen(false); switchTo(l.code); }}
               style={{
                 display: 'block', width: '100%', textAlign: 'left',
                 background: l.code === lang ? 'var(--border, #1a3048)' : 'transparent',
