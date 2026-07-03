@@ -27,6 +27,7 @@ function App() {
     { path: '/', icon: '🏠', label: t('首页') },
     { path: '/streamers', icon: '🎙️', label: t('主播同款改枪码') },
     { path: '/official', icon: '🔥', label: t('官方热门改枪码') },
+    { path: '/gun', icon: '🔫', label: t('武器改枪码大全') },
     { path: '/community', icon: '🌐', label: t('玩家社区') },
     { path: '/daily', icon: '🔑', label: t('每日密码') },
     { path: '/profit', icon: '💰', label: t('特勤处制造利润') },
