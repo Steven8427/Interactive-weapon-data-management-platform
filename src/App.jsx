@@ -13,6 +13,7 @@ import Streamers from './pages/Streamers';
 import Community from './pages/Community';
 import Legal from './pages/Legal';
 import ItemCatalog from './pages/ItemCatalog';
+import GunLanding from './pages/GunLanding';
 import { useT, LanguageSwitcher } from './i18n';
 
 function App() {
@@ -93,6 +94,8 @@ function App() {
             <Route path="/profit" element={<Manufacturing />} />
             <Route path="/prices" element={<PriceTrend />} />
             <Route path="/items" element={<ItemCatalog />} />
+            <Route path="/gun" element={<GunLanding />} />
+            <Route path="/gun/:slug" element={<GunLanding />} />
             <Route path="/cards" element={<Loadout />} />
             <Route path="/map" element={<MapTool />} />
             <Route path="/admin" element={<Admin isAdmin={isAdmin} setIsAdmin={setIsAdmin} />} />
