@@ -45,6 +45,9 @@ function Community() {
   // Management (own profile)
   const [selectedGunId, setSelectedGunId] = useState('');
   const [variantForm, setVariantForm] = useState({ version: '', price: '', mod_type: '', code: '', effective_range: '' });
+  // Smart quick-add: paste code (gun name auto-detected) -> one-click add
+  const [quick, setQuick] = useState({ code: '', name: '', version: '', price: '', mod_type: '' });
+  const [quickBusy, setQuickBusy] = useState(false);
   const [editingVariant, setEditingVariant] = useState(null);
   const [gunSearch, setGunSearch] = useState('');
   const [catalogResults, setCatalogResults] = useState([]);
@@ -201,17 +204,29 @@ function Community() {
     setShowCatalog(true);
   }
 
-  // Add gun from catalog - optimistic local update
-  async function addGunFromCatalog(item) {
-    if (!player) return;
-    const catSuffixes = ['紧凑突击步枪','通用机枪','轻机枪','突击步枪','战斗步枪','射手步枪','狙击步枪','冲锋枪','霰弹枪','手枪'];
-    const catMap = {'紧凑突击步枪':'突击步枪','通用机枪':'机枪','轻机枪':'机枪'};
+  // Derive a clean gun name + specific category from a catalog object_name.
+  function deriveNameCat(objectName, secondClass) {
+    const catSuffixes = ['精确射手步枪','紧凑突击步枪','通用机枪','轻机枪','突击步枪','战斗步枪','射手步枪','狙击步枪','连狙','冲锋枪','霰弹枪','手枪','弓弩'];
+    const catMap = { '紧凑突击步枪':'突击步枪','通用机枪':'机枪','轻机枪':'机枪','精确射手步枪':'射手步枪' };
     const CLASS_TO_CAT = { gunRifle:'突击步枪', gunSMG:'冲锋枪', gunShotgun:'霰弹枪', gunSniper:'狙击步枪', gunMP:'射手步枪', gunLMG:'机枪', gunPistol:'手枪' };
-    let name = item.object_name;
-    let cat = CLASS_TO_CAT[item.second_class] || item.second_class_cn || '突击步枪';
+    let name = objectName || '';
+    let cat = CLASS_TO_CAT[secondClass] || '突击步枪';
     for (const s of catSuffixes) {
       if (name.includes(s)) { cat = catMap[s] || s; name = name.replace(s, '').trim(); break; }
     }
+    return { name: name.trim(), cat };
+  }
+
+  // Extract the weapon name embedded in a build code ("<name>-烽火地带-<token>").
+  function detectGunName(code) {
+    const m = (code || '').trim().match(/^(.+?)-(?:烽火地带|烽火|全面战场|大战场)-/);
+    return m ? m[1].trim() : '';
+  }
+
+  // Add gun from catalog - optimistic local update
+  async function addGunFromCatalog(item) {
+    if (!player) return;
+    const { name, cat } = deriveNameCat(item.object_name, item.second_class);
     const existing = guns.find(g => g.name === name);
     if (existing) { toast.error(t('已有此枪械')); setShowCatalog(false); setGunSearch(''); return; }
     const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
@@ -219,6 +234,45 @@ function Community() {
     if (newGun) setGuns(prev => [...prev, { ...newGun, variants: [] }]);
     toast.success(t('{name} 已添加！', { name }));
     setShowCatalog(false); setGunSearch('');
+  }
+
+  // Smart quick-add: parse code -> match catalog -> create gun (if new) + variant, in one step.
+  async function quickAdd() {
+    if (!player) return;
+    const code = quick.code.trim();
+    if (!code) { toast.error(t('请填写改枪码')); return; }
+    const typedName = quick.name.trim();
+    const gunNameInput = typedName || detectGunName(code);
+    if (!gunNameInput) { toast.error(t('请填写枪名，或粘贴带枪名的完整改枪码')); return; }
+    setQuickBusy(true);
+    try {
+      // match the official catalog to get the specific category + image
+      const { data: hits } = await supabase.from('gun_catalog').select('object_name, second_class, pic')
+        .eq('primary_class', 'gun').ilike('object_name', `%${gunNameInput}%`).limit(1);
+      const item = hits && hits[0];
+      let name, cat, image;
+      if (item) { const d = deriveNameCat(item.object_name, item.second_class); name = d.name; cat = d.cat; image = item.pic || ''; }
+      else { const d = deriveNameCat(gunNameInput, null); name = d.name; cat = d.cat; image = ''; }
+      // find or create the gun
+      let gun = guns.find(g => g.name === name);
+      if (!gun) {
+        const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
+        const { data: newGun, error: gErr } = await supabase.from('guns').insert({ name, category: cat, image_url: image, player_id: player.id, sort_order: mx + 1 }).select().single();
+        if (gErr || !newGun) { toast.error(t('添加失败')); setQuickBusy(false); return; }
+        gun = { ...newGun, variants: [] };
+        setGuns(prev => [...prev, gun]);
+      }
+      // add the variant (pending review)
+      const mv = gun.variants.reduce((m, v) => Math.max(m, v.sort_order || 0), 0);
+      const { data: newV, error: vErr } = await supabase.from('gun_variants').insert({
+        gun_id: gun.id, code, version: quick.version.trim(), price: quick.price.trim(), mod_type: quick.mod_type.trim(), effective_range: '', sort_order: mv + 1, status: 'pending',
+      }).select().single();
+      if (vErr || !newV) { toast.error(t('添加失败')); setQuickBusy(false); return; }
+      setGuns(prev => prev.map(g => g.id === gun.id ? { ...g, variants: [...g.variants, newV] } : g));
+      toast.success(t('已识别为「{name}」，已提交审核', { name }));
+      setQuick({ code: '', name: '', version: '', price: '', mod_type: '' });
+    } catch (e) { toast.error(t('添加失败')); }
+    setQuickBusy(false);
   }
 
   // Delete gun - optimistic local update
@@ -338,6 +392,32 @@ function Community() {
         {isOwnProfile && (
           <div className="admin-section" style={{ marginBottom: 16 }}>
             <h3>✏️ {t('添加枪械与改枪码')}</h3>
+
+            {/* 智能添加：粘贴改枪码，自动识别枪名 */}
+            <div style={{ marginBottom: 16, padding: 14, borderRadius: 10, background: 'rgba(32,232,112,0.05)', border: '1px solid rgba(32,232,112,0.25)' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🤖 {t('智能添加改枪码')}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>{t('粘贴改枪码，自动识别枪名并加入')}</div>
+              <div className="form-group" style={{ marginBottom: 8 }}>
+                <textarea rows={2} value={quick.code} onChange={e => setQuick({ ...quick, code: e.target.value })}
+                  placeholder={t('在此粘贴改枪码（含枪名的完整码可自动识别）')}
+                  style={{ width: '100%', fontFamily: 'monospace', resize: 'vertical' }} />
+                {quick.code.trim() && !quick.name.trim() && detectGunName(quick.code) && (
+                  <div style={{ fontSize: 12, color: '#20e870', marginTop: 4 }}>✓ {t('已识别：{name}', { name: detectGunName(quick.code) })}</div>
+                )}
+              </div>
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 2 }}><label>{t('枪名')}</label><input type="text" value={quick.name} onChange={e => setQuick({ ...quick, name: e.target.value })} placeholder={t('自动识别，可修改')} /></div>
+                <div className="form-group"><label>{t('段位')} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('选填')})</span></label><select value={quick.version} onChange={e => setQuick({ ...quick, version: e.target.value })}><option value="">{t('不选')}</option>{['T0','T1','T2','T3','T4','狙击','连狙','手枪','弓弩'].map(v => <option key={v}>{v}</option>)}</select></div>
+                <div className="form-group"><label>{t('价格')} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('选填')})</span></label><input type="text" value={quick.price} onChange={e => setQuick({ ...quick, price: e.target.value })} placeholder="85w" /></div>
+                <div className="form-group"><label>{t('类型')} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('选填')})</span></label><input type="text" value={quick.mod_type} onChange={e => setQuick({ ...quick, mod_type: e.target.value })} placeholder={t('满改')} /></div>
+              </div>
+              <button className="btn btn-primary" onClick={quickAdd} disabled={quickBusy} style={{ width: '100%', justifyContent: 'center' }}>
+                {quickBusy ? t('识别中...') : `🤖 ${t('智能添加')}`}
+              </button>
+            </div>
+
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', margin: '4px 0 12px' }}>{t('— 或手动添加 —')}</div>
+
             {/* 搜索添加枪械 */}
             <div ref={catalogRef} style={{ position: 'relative', marginBottom: 14 }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
