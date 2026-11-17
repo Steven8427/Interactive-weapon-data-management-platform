@@ -1,10 +1,11 @@
 // Stale-while-revalidate cache for Supabase queries.
 // Pages render cached data instantly (from memory, or from localStorage after
-// a reload / revisit), then refresh in the background when it is stale.
+// a reload / revisit) and ALWAYS refetch in the background on mount, so admin
+// edits show up on the next visit/refresh (the cache only speeds up first paint).
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const cache = {};
-const TTL = 5 * 60 * 1000; // 5 minutes
+const TTL = 30 * 1000; // within one SPA session, skip refetching data younger than 30s
 const LS_PREFIX = 'dc1:'; // bump to invalidate every persisted entry
 const LS_MAX_CHARS = 1500000; // skip persisting very large payloads
 
@@ -38,21 +39,30 @@ export function getCached(key) {
   return entry ? entry.data : null;
 }
 
+// Only data fetched during THIS page load counts as fresh; anything restored
+// from localStorage is always revalidated.
+const fetchedThisLoad = new Set();
 export function isFresh(key) {
-  const entry = getEntry(key);
-  return !!entry && Date.now() - entry.ts < TTL;
+  const entry = cache[key];
+  return fetchedThisLoad.has(key) && !!entry && Date.now() - entry.ts < TTL;
 }
 
 export function setCache(key, data) {
   const entry = { data, ts: Date.now() };
   cache[key] = entry;
+  fetchedThisLoad.add(key);
   writeStorage(key, entry);
 }
 
 export function clearCache(key) {
   const keys = key ? [key] : Object.keys(cache);
+  if (!key) {
+    // also drop persisted entries from earlier page loads
+    try { Object.keys(localStorage).filter(k => k.startsWith(LS_PREFIX)).forEach(k => keys.push(k.slice(LS_PREFIX.length))); } catch (e) { /* ignore */ }
+  }
   keys.forEach(k => {
     delete cache[k];
+    fetchedThisLoad.delete(k);
     try { localStorage.removeItem(LS_PREFIX + k); } catch (e) { /* ignore */ }
   });
 }

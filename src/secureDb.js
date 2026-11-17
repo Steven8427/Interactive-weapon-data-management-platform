@@ -3,6 +3,7 @@
 // player_register) and enforces who may change what. Direct table writes with
 // the public anon key are rejected by RLS.
 import { supabase } from './supabaseClient';
+import { clearCache } from './dataCache';
 
 export const SESSION_EXPIRED_EVENT = 'secure-session-expired';
 
@@ -19,6 +20,8 @@ export async function secureWrite(kind, token, table, op, { values = null, match
   if (error && /invalid_session/.test(error.message || '')) {
     window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT, { detail: kind }));
   }
+  // Data changed: drop cached page data so public pages refetch right away.
+  if (!error) clearCache();
   return { data: Array.isArray(data) ? data : [], error };
 }
 
