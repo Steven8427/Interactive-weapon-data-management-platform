@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { IconSearch } from '@tabler/icons-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
@@ -758,7 +759,7 @@ function Admin({ isAdmin, setIsAdmin }) {
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>输入枪名搜索，点击即可添加（图片和分类自动匹配）</p>
           <div style={{ position: 'relative' }}>
             <div className="search-bar">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon"><IconSearch size={16} /></span>
               <input type="text" value={gunSearch} onChange={e => searchCatalog(e.target.value)}
                 placeholder="输入枪名搜索，如 AK、M4、Vector..." onFocus={() => { if (catalogResults.length) setShowCatalog(true); }} />
             </div>
@@ -1062,7 +1063,7 @@ function Admin({ isAdmin, setIsAdmin }) {
         <div className="admin-section">
           <h3>🎙️ 选择主播 <span style={{fontSize:12,fontWeight:400,color:'var(--text-muted)'}}>拖动卡片排序</span></h3>
           <div className="search-bar" style={{marginBottom:14,flex:'none'}}>
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><IconSearch size={16} /></span>
             <input placeholder="搜索主播名..." value={streamerSearch} onChange={e=>setStreamerSearch(e.target.value)} />
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',gap:10}}>

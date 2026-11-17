@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { IconBook2, IconSearch } from '@tabler/icons-react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import { fetchAllRows } from '../supabaseFetch';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 
 const GRADE_COLOR = { 6: '#e04848', 5: '#ffc040', 4: '#c060e0', 3: '#40a0e0', 2: '#40d070', 1: '#c0c8d0', 0: '#6080a0' };
@@ -105,7 +107,7 @@ function ItemCatalog() {
   return (
     <div>
       <SEO title={t('物品图鉴')} path="/items" description={t('三角洲行动全物品图鉴百科，收录所有枪械、配件、护甲、装备的详细信息和价格。')} />
-      <h1 className="page-title">📖 {t('物品图鉴')}</h1>
+      <PageTitle icon={IconBook2}>{t('物品图鉴')}</PageTitle>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('三角洲行动所有物品信息 · {n} 个物品', { n: items.length })}</p>
 
       <div className="filter-bar">
@@ -125,7 +127,7 @@ function ItemCatalog() {
       )}
 
       <div className="search-row">
-        <div className="search-bar"><span className="search-icon">🔍</span><input placeholder={t('搜索物品名称、描述、产出地...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
+        <div className="search-bar"><span className="search-icon"><IconSearch size={16} /></span><input placeholder={t('搜索物品名称、描述、产出地...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
         <select className="filter-select" value={gradeFilter} onChange={e => setGradeFilter(e.target.value)}>
           <option value="全部">{t('全部品级')}</option>
           {[6,5,4,3,2,1].map(g => <option key={g} value={g}>{t(GRADE_NAME[g])} {t('{n}级', { n: g })}</option>)}
@@ -145,11 +147,10 @@ function ItemCatalog() {
           const gc = GRADE_COLOR[item.grade] || '#6080a0';
           return (
             <div key={item.id} onClick={() => setSelectedItem(item)} style={{
-              background: 'var(--bg-card)', border: `1px solid ${gc}25`, borderRadius: 10,
+              '--hover-border': `${gc}60`, background: 'var(--bg-card)', border: `1px solid ${gc}25`, borderRadius: 10,
               padding: 12, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center', overflow: 'hidden',
             }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = `${gc}60`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = `${gc}25`; e.currentTarget.style.transform = 'none'; }}
+              className="hover-card hover-lift"
             >
               {item.pic && <img src={item.pic} alt="" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 8, background: 'linear-gradient(135deg, #1a2a3a, #1e3040)', border: `1px solid ${gc}30`, padding: 4, marginBottom: 8 }} />}
               <div style={{ fontSize: 13, fontWeight: 700, color: gc, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 3 }}>{item.object_name}</div>

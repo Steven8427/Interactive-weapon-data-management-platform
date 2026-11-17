@@ -1,12 +1,17 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { IconFlame, IconSearch } from '@tabler/icons-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import { fetchAllRows, ACCESSORY_CLASSES } from '../supabaseFetch';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
+import Pager from '../components/Pager';
+import WeaponIcon, { CatChipIcon } from '../components/WeaponIcon';
+import { CATS, catColor } from '../weaponCategories';
 import { useT } from '../i18n';
 
-const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
+const PAGE_SIZE = 20;
 const SLOT_NAME = { "1":"弹匣", "2":"枪口", "3":"下挂/握把", "5":"枪托", "6":"瞄具", "8":"激光指示器", "11":"护木", "17":"导轨配件", "20":"导轨配件", "32":"导轨配件", "34":"导轨配件", "35":"导轨配件", "44":"弹鼓" };
 
 function OfficialCodes() {
@@ -31,9 +36,10 @@ function OfficialCodes() {
   const itemsMap = data?.itemsMap || {};
   const lastSync = data?.lastSync || '';
 
+  // categories present in the data, in the site-wide order (unknown ones last)
   const categories = useMemo(() => {
     const s = new Set(); codes.forEach(c => { if (c.arms_category) s.add(c.arms_category); });
-    return ['全部', ...Array.from(s).sort()];
+    return ['全部', ...CATS.filter(c => s.has(c)), ...Array.from(s).filter(c => !CATS.includes(c)).sort()];
   }, [codes]);
 
   const filtered = useMemo(() => {
@@ -46,6 +52,14 @@ function OfficialCodes() {
     if (sortBy === 'price_desc') r = [...r].sort((a, b) => (b.price || 0) - (a.price || 0));
     return r;
   }, [codes, filterCat, search, sortBy]);
+
+  // pagination (back to page 1 whenever the filter changes)
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); setExpandedId(null); }, [filterCat, search, sortBy]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const curPage = Math.min(page, pageCount);
+  const pageStart = (curPage - 1) * PAGE_SIZE;
+  const pageCodes = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
   function copyCode(code, e) { if (e) e.stopPropagation(); navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function formatNum(n) { if (!n) return '0'; if (n >= 10000) return (n/10000).toFixed(1) + 'w'; if (n >= 1000) return (n/1000).toFixed(1) + 'k'; return n.toString(); }
@@ -78,19 +92,19 @@ function OfficialCodes() {
   if (loading) return <div className="loading"><div className="spinner"></div>{t('加载官方改枪码...')}</div>;
 
   return (
-    <div>
+    <div className="page-fill">
       <SEO title={t('官方热门改枪码')} path="/official" description={t('三角洲行动官方社区热门改枪码，按使用量排行，含完整配件列表和价格。')} />
-      <h1 className="page-title">🔥 {t('官方热门改枪码')}</h1>
+      <PageTitle icon={IconFlame}>{t('官方热门改枪码')}</PageTitle>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
         {t('来自官方社区 · {c} 个方案 · 点击展开查看配件 · 同步：{time}', { c: codes.length, time: formatTime(lastSync) })}
       </p>
 
       <div className="filter-bar">
-        {categories.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : t(c)}</button>)}
+        {categories.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? <><CatChipIcon category="_all" />{t('全部')}</> : <><CatChipIcon category={c} color={catColor(c)} />{t(c)}</>}</button>)}
       </div>
 
       <div className="search-row">
-        <div className="search-bar"><span className="search-icon">🔍</span><input placeholder={t('搜索枪名、方案名、作者...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
+        <div className="search-bar"><span className="search-icon"><IconSearch size={16} /></span><input placeholder={t('搜索枪名、方案名、作者...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
         <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
           <option value="apply">{t('使用量 高→低')}</option>
           <option value="like">{t('点赞 高→低')}</option>
@@ -100,19 +114,19 @@ function OfficialCodes() {
       </div>
 
       <div style={{ display: 'grid', gap: 12 }}>
-        {filtered.map((code, idx) => {
-          const catC = CAT_COLOR[code.arms_category] || '#20e870';
+        {pageCodes.map((code, i) => {
+          const idx = pageStart + i; // global rank across pages
+          const catC = catColor(code.arms_category);
           const isExpanded = expandedId === code.id;
           const accessories = isExpanded ? getAccessories(code) : [];
 
           return (
-            <div key={code.id} style={{
+            <div key={code.id} className={`hover-card ${isExpanded ? 'is-open' : ''}`} style={{
+              '--hover-border': catC + '50',
               background: 'var(--bg-card)', border: `1px solid ${isExpanded ? catC + '40' : 'var(--border)'}`,
-              borderRadius: 12, overflow: 'hidden', transition: 'border-color 0.2s',
+              borderRadius: 12, overflow: 'hidden',
             }}>
-              <div onClick={() => setExpandedId(isExpanded ? null : code.id)} style={{ padding: '14px 16px', cursor: 'pointer' }}
-                onMouseEnter={e => { if (!isExpanded) e.currentTarget.parentElement.style.borderColor = `${catC}50`; }}
-                onMouseLeave={e => { if (!isExpanded) e.currentTarget.parentElement.style.borderColor = 'var(--border)'; }}>
+              <div onClick={() => setExpandedId(isExpanded ? null : code.id)} style={{ padding: '14px 16px', cursor: 'pointer' }}>
 
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
                   <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: idx < 3 ? `${catC}20` : 'var(--bg-secondary)', border: `1px solid ${idx < 3 ? catC + '40' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Orbitron', monospace", fontSize: 12, fontWeight: 700, color: idx < 3 ? catC : 'var(--text-muted)' }}>{idx + 1}</div>
@@ -174,6 +188,7 @@ function OfficialCodes() {
       <div style={{ marginTop: 24, padding: 14, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text-muted)' }}>
         💡 {t('点击卡片展开查看配件详情。点击改枪码直接复制。数据每6小时自动同步。')}
       </div>
+      <Pager page={curPage} pageCount={pageCount} onChange={setPage} />
     </div>
   );
 }

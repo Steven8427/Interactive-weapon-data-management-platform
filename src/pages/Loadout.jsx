@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react';
+import { IconCards } from '@tabler/icons-react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 
 const TIERS = [
@@ -43,7 +45,7 @@ function Loadout() {
   const hasGun = presets.some(p => p.tier === selectedTier && p.style === 'gun');
 
   if (loading) return <div className="loading"><div className="spinner"></div>{t('加载战备数据中...')}</div>;
-  if (!presets.length) return <div><h1 className="page-title">🃏 {t('卡战备系统')}</h1><div style={{ textAlign:'center', padding:60, color:'var(--text-muted)' }}><div style={{ fontSize:56, marginBottom:16 }}>🃏</div><p>{t('暂无战备数据')}</p></div></div>;
+  if (!presets.length) return <div><PageTitle icon={IconCards}>{t('卡战备系统')}</PageTitle><div style={{ textAlign:'center', padding:60, color:'var(--text-muted)' }}><div style={{ fontSize:56, marginBottom:16 }}>🃏</div><p>{t('暂无战备数据')}</p></div></div>;
 
   function renderCard(p) {
     const budget = p.budget_min || 0;
@@ -62,9 +64,7 @@ function Loadout() {
     // note: item.t below is a category key translated at render via t(it.t)
 
     return (
-      <div key={p.id} style={{ background:'var(--bg-card)', border:`1px solid ${sc}20`, borderRadius:14, overflow:'hidden', transition:'border-color 0.2s' }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = `${sc}50`}
-        onMouseLeave={e => e.currentTarget.style.borderColor = `${sc}20`}>
+      <div key={p.id} className="hover-card" style={{ '--hover-border': `${sc}50`, background:'var(--bg-card)', border:`1px solid ${sc}20`, borderRadius:14, overflow:'hidden', transition:'border-color 0.2s' }}>
 
         {/* 标题 */}
         <div style={{ borderBottom:`3px solid ${sc}`, padding:'12px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>

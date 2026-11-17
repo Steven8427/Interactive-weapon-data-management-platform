@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { IconWorld, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 import { translations, LANGS } from './translations';
 
 const STORAGE_KEY = 'site_lang';
@@ -110,9 +111,9 @@ export function LanguageSwitcher({ dropUp = false, fullWidth = false }) {
           fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
         }}
       >
-        <span>🌐</span>
+        <IconWorld size={16} stroke={1.75} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
         <span>{current.label}</span>
-        <span style={{ fontSize: 9, opacity: 0.7 }}>{dropUp ? '▲' : '▼'}</span>
+        {dropUp ? <IconChevronUp size={14} style={{ opacity: 0.7 }} /> : <IconChevronDown size={14} style={{ opacity: 0.7 }} />}
       </button>
       {open && (
         <div

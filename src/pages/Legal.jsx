@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { IconScale } from '@tabler/icons-react';
 import { useSearchParams } from 'react-router-dom';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 
 const TABS = [
@@ -19,7 +21,7 @@ function Legal() {
   return (
     <div>
       <SEO title={t('法律声明')} path="/legal" description={t('有力气的改枪网站的隐私政策、使用条款和Cookie政策。')} />
-      <h1 className="page-title">📋 {t('法律声明')}</h1>
+      <PageTitle icon={IconScale}>{t('法律声明')}</PageTitle>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>{t('最后更新：2026年3月13日')}</p>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -200,6 +202,15 @@ function Legal() {
           </div>
         )}
       </div>
+
+      {/* Third-party asset credits (CC BY 3.0 requires attribution) */}
+      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16, lineHeight: 1.7 }}>
+        {t('武器分类图标来自')}{' '}
+        <a href="https://game-icons.net" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)' }}>game-icons.net</a>
+        {' '}(Lorc, Delapouite {t('等作者')}) · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)' }}>CC BY 3.0</a>
+        {' · '}{t('界面图标来自')}{' '}
+        <a href="https://tabler.io/icons" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)' }}>Tabler Icons</a> (MIT)
+      </p>
     </div>
   );
 }

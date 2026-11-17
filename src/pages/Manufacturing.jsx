@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { IconCoin } from '@tabler/icons-react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import { fetchAllRows } from '../supabaseFetch';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 
 const PLACES = [
@@ -128,7 +130,7 @@ function Manufacturing() {
   if (items.length === 0) {
     return (
       <div>
-        <h1 className="page-title">{t('特勤处制造利润')}</h1>
+        <PageTitle icon={IconCoin}>{t('特勤处制造利润')}</PageTitle>
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>💰</div>
           <p style={{ fontSize: 18, marginBottom: 8 }}>{t('暂无制造数据')}</p>
@@ -141,7 +143,7 @@ function Manufacturing() {
   return (
     <div>
       <SEO title={t('特勤处制造利润')} path="/profit" description={t('三角洲行动特勤处制造利润计算器，实时制造成本与收益分析，找到最赚钱的制造方案。')} />
-      <h1 className="page-title">{t('特勤处制造利润')}</h1>
+      <PageTitle icon={IconCoin}>{t('特勤处制造利润')}</PageTitle>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
         {t('更新时间：')}{formatTime(lastUpdate)} · {t('共 {n} 个制造方案', { n: items.length })}
       </p>
@@ -246,12 +248,11 @@ function Manufacturing() {
           return (
             <div key={item.id} style={{
               background: 'var(--bg-card)', border: '1px solid var(--border)',
-              borderRadius: 12, padding: '14px 16px',
+              '--hover-border': color + '50', borderRadius: 12, padding: '14px 16px',
               display: 'flex', alignItems: 'center', gap: 14,
               transition: 'border-color 0.2s', flexWrap: 'wrap',
             }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = color + '50'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+              className="hover-card"
             >
               {/* 排名 */}
               <div style={{

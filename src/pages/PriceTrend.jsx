@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { IconChartLine, IconSearch } from '@tabler/icons-react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import { fetchAllRows } from '../supabaseFetch';
@@ -8,6 +9,7 @@ const SPARK_DAYS = 14;   // list mini charts
 const EMPTY_LIST = [];
 const EMPTY_OBJ = {};
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 
 const CATEGORIES = [
@@ -193,7 +195,7 @@ function PriceTrend() {
   return (
     <div>
       <SEO title={t('价格走势图')} path="/prices" description={t('三角洲行动物品价格走势图，实时追踪枪械、护甲、配件等物品的历史价格变化。')} />
-      <h1 className="page-title">{t('价格走势图')}</h1>
+      <PageTitle icon={IconChartLine}>{t('价格走势图')}</PageTitle>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
         {t('更新日期：')}{formatTime(lastUpdate) || t('暂无数据')} · {t('共 {n} 个物品', { n: todayPrices.length })}
       </p>
@@ -250,7 +252,7 @@ function PriceTrend() {
 
       <div className="search-row">
         <div className="search-bar">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><IconSearch size={16} /></span>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('搜索物品名称...')} />
         </div>
         <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
@@ -277,16 +279,14 @@ function PriceTrend() {
             const changePct = prevPrice ? ((change / prevPrice) * 100).toFixed(1) : null;
 
             return (
-              <div key={item.id} onClick={() => setSelectedItem(item)}
-                style={{
+              <div key={item.id} onClick={() => setSelectedItem(item)} className="hover-card"
+                style={{ '--hover-border': `${color}50`,
                   background: 'var(--bg-card)', border: '1px solid var(--border)',
                   borderRadius: 10, padding: '12px 16px',
                   display: 'flex', alignItems: 'center', gap: 12,
                   cursor: 'pointer', transition: 'border-color 0.15s',
                   flexWrap: 'wrap',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = `${color}50`}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
               >
                 {/* 图片 */}
                 {item.image_url && (

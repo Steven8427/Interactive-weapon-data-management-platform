@@ -1,16 +1,18 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import { IconTarget, IconSearch } from '@tabler/icons-react';
 import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import { fetchAllRows } from '../supabaseFetch';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
+import Pager from '../components/Pager';
+import WeaponIcon, { CatChipIcon } from '../components/WeaponIcon';
+import { CATS, catColor } from '../weaponCategories';
 import { useT } from '../i18n';
 import { gunSlug, weaponModel, slugKey } from '../gunSlug';
 
-const CAT_COLOR = { '突击步枪': '#30d060', '战斗步枪': '#e0a030', '射手步枪': '#50b0e0', '冲锋枪': '#d050d0', '机枪': '#e06030', '狙击步枪': '#4090f0', '连狙': '#60c0c0', '霰弹枪': '#d04040', '手枪': '#a0a0a0', '弓弩': '#90d040' };
-const CAT_ICON = { '突击步枪': '🔫', '战斗步枪': '⚔️', '射手步枪': '🎯', '冲锋枪': '💨', '机枪': '🔥', '狙击步枪': '🔭', '连狙': '🎯', '霰弹枪': '💥', '手枪': '🔫', '弓弩': '🏹' };
-const CATS = ['突击步枪', '战斗步枪', '射手步枪', '冲锋枪', '机枪', '狙击步枪', '连狙', '霰弹枪', '手枪', '弓弩'];
 const PAGE_SIZE = 30;
 // nicknames used in community data -> the official weapon's slug
 const SLUG_ALIAS = { '巴雷特': 'm82' };
@@ -99,10 +101,6 @@ function GunLanding() {
   useEffect(() => { setPage(1); }, [search, filterCat, sortBy]);
   const curPage = Math.min(page, pageCount);
   const pageWeapons = filteredWeapons.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
-  function goPage(p) {
-    setPage(p);
-    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
-  }
 
   function copyCode(code) {
     navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => {
@@ -122,26 +120,25 @@ function GunLanding() {
 
   // ---- index: /gun ----
   if (!slug) {
-    // Full-height column so the pager sits at the bottom of the page no matter
-    // how many weapons the current page/category shows. The pager is pushed
-    // down with margin-top:auto and is sticky to the screen bottom when scrolling.
+    // .page-fill + <Pager>: the pager sits right above the footer no matter how
+    // many weapons the current page/category shows.
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 130px)' }}>
+      <div className="page-fill">
         <SEO title={t('武器改枪码大全')} path="/gun" description={t('三角洲行动各热门武器的改枪码大全，按武器查询官方与主播同款改枪码，一键复制。')} />
-        <h1 className="page-title">🔫 {t('武器改枪码大全')}</h1>
+        <PageTitle icon={IconTarget}>{t('武器改枪码大全')}</PageTitle>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('按武器查询三角洲行动改枪码 · 共 {n} 把武器', { n: weapons.length })}</p>
         {/* 分类 */}
         <div className="filter-bar" style={{ marginBottom: 12 }}>
           {catTabs.map(cat => (
             <button key={cat} className={`filter-chip ${filterCat === cat ? 'active' : ''}`} onClick={() => setFilterCat(cat)}>
-              {cat !== '全部' && CAT_ICON[cat] ? CAT_ICON[cat] + ' ' : ''}{t(cat)}
+              {cat === '全部' ? <CatChipIcon category="_all" /> : <CatChipIcon category={cat} color={catColor(cat)} />}{t(cat)}
               <span style={{ opacity: 0.6, marginLeft: 4, fontSize: '0.85em' }}>{cat === '全部' ? weapons.length : catCounts[cat]}</span>
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
           <div className="search-bar" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><IconSearch size={16} /></span>
             <input placeholder={t('搜索枪名、改枪码、作者...')} value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
@@ -155,14 +152,13 @@ function GunLanding() {
         ) : (<>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
             {pageWeapons.map(w => {
-              const c = CAT_COLOR[w.category] || '#20e870';
+              const c = catColor(w.category);
               return (
-                <Link key={w.slug} to={`/gun/${w.slug}`} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 14, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, transition: 'border-color 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = `${c}50`} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+                <Link key={w.slug} to={`/gun/${w.slug}`} className="hover-card" style={{ '--hover-border': `${c}50`, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 14, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, transition: 'border-color 0.2s' }}>
                   <div style={{ width: 52, height: 38, flexShrink: 0, background: 'linear-gradient(135deg,#1a2a3a,#1e3040)', borderRadius: 6, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
                     {w.pic
                       ? <img src={w.pic} alt={w.model} loading="lazy" style={{ width: 48, height: 34, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; }} />
-                      : (CAT_ICON[w.category] || '🔫')}
+                      : <WeaponIcon category={w.category} size={24} style={{ color: c }} />}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.model}</div>
@@ -172,19 +168,8 @@ function GunLanding() {
               );
             })}
           </div>
-          {pageCount > 1 && (
-            <div style={{ position: 'sticky', bottom: 0, zIndex: 5, marginTop: 'auto', paddingTop: 20, display: 'flex', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, flexWrap: 'wrap', width: '100%', padding: '10px 0 12px', background: 'var(--bg-primary)', borderTop: '1px solid var(--border)' }}>
-              <button className="filter-chip" disabled={curPage <= 1} onClick={() => goPage(curPage - 1)} style={{ opacity: curPage <= 1 ? 0.4 : 1 }}>‹ {t('上一页')}</button>
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map(p => (
-                <button key={p} className={`filter-chip ${p === curPage ? 'active' : ''}`} onClick={() => goPage(p)} style={{ minWidth: 36, justifyContent: 'center' }}>{p}</button>
-              ))}
-              <button className="filter-chip" disabled={curPage >= pageCount} onClick={() => goPage(curPage + 1)} style={{ opacity: curPage >= pageCount ? 0.4 : 1 }}>{t('下一页')} ›</button>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 6 }}>{t('第 {p} / {n} 页', { p: curPage, n: pageCount })}</span>
-            </div>
-            </div>
-          )}
         </>)}
+        <Pager page={curPage} pageCount={pageCount} onChange={setPage} />
       </div>
     );
   }
@@ -201,7 +186,7 @@ function GunLanding() {
       </div>
     );
   }
-  const c = CAT_COLOR[w.category] || '#20e870';
+  const c = catColor(w.category);
   const codeList = [...w.codes].sort((a, b) => (a.source === b.source ? (b.apply || 0) - (a.apply || 0) : a.source === 'official' ? -1 : 1));
   const communityCount = w.codes.filter(x => x.source === 'community').length;
 
@@ -221,8 +206,7 @@ function GunLanding() {
 
       <div style={{ display: 'grid', gap: 10 }}>
         {codeList.map((code, idx) => (
-          <div key={code.id} onClick={() => copyCode(code.code)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', cursor: 'pointer', transition: 'border-color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = `${c}50`} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+          <div key={code.id} onClick={() => copyCode(code.code)} className="hover-card" style={{ '--hover-border': `${c}50`, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px 16px', cursor: 'pointer', transition: 'border-color 0.2s' }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
               <div style={{ width: 26, height: 26, borderRadius: '50%', flexShrink: 0, background: idx < 3 ? `${c}20` : 'var(--bg-secondary)', border: `1px solid ${idx < 3 ? c + '40' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Orbitron', monospace", fontSize: 12, fontWeight: 700, color: idx < 3 ? c : 'var(--text-muted)' }}>{idx + 1}</div>
               <div style={{ flex: 1, minWidth: 0 }}>

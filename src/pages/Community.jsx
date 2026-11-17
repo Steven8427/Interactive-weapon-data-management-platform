@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { IconUsers, IconSearch, IconListDetails } from '@tabler/icons-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { getCached, setCache } from '../dataCache';
 import { secureWrite, logoutSession, SESSION_EXPIRED_EVENT } from '../secureDb';
 import { parseBuildTable, tokenOf, nameKey } from '../codeImport';
+import { CATS as WEAPON_CATS, catColor } from '../weaponCategories';
+import WeaponIcon, { CatChipIcon } from '../components/WeaponIcon';
 
 const BULK_STATUS = {
   ok: { label: '可导入', color: '#20e870' },
@@ -11,12 +14,11 @@ const BULK_STATUS = {
   unknown_weapon: { label: '缺枪名', color: '#e06040' },
 };
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
 
-const CATS = ["全部","突击步枪","战斗步枪","射手步枪","冲锋枪","机枪","狙击步枪","连狙","霰弹枪","手枪","弓弩"];
-const CAT_ICON = {"突击步枪":"🔫","战斗步枪":"⚔️","射手步枪":"🎯","冲锋枪":"💨","机枪":"🔥","狙击步枪":"🔭","连狙":"🎯","霰弹枪":"💥","手枪":"🔫","弓弩":"🏹"};
-const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
+const CATS = ['全部', ...WEAPON_CATS];
 
 function Community() {
   const { t } = useT();
@@ -507,8 +509,7 @@ function Community() {
               {showCatalog && catalogResults.length > 0 && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--bg-card)', border: '1px solid var(--accent)', borderRadius: 8, maxHeight: 240, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
                   {catalogResults.map(item => (
-                    <div key={item.object_id} onClick={() => addGunFromCatalog(item)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border)' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(32,232,112,0.06)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <div key={item.object_id} onClick={() => addGunFromCatalog(item)} className="hover-row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--border)' }}>
                       {item.pic && <img src={item.pic} alt="" style={{ width: 36, height: 26, objectFit: 'contain', borderRadius: 4, background: 'linear-gradient(135deg,#1a2a3a,#1e3040)' }} />}
                       <div><div style={{ fontSize: 14, fontWeight: 600 }}>{item.object_name}</div><div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.second_class_cn}</div></div>
                       <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--accent)' }}>+ {t('添加')}</span>
@@ -551,12 +552,12 @@ function Community() {
 
         {/* 分类筛选 */}
         <div className="filter-bar">
-          {CATS.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? t('全部') : `${CAT_ICON[c] || ''} ${t(c)}`}</button>)}
+          {CATS.map(c => <button key={c} className={`filter-chip ${filterCat === c ? 'active' : ''}`} onClick={() => setFilterCat(c)}>{c === '全部' ? <><CatChipIcon category="_all" />{t('全部')}</> : <><CatChipIcon category={c} color={catColor(c)} />{t(c)}</>}</button>)}
         </div>
 
         {/* 搜索+段位+排序 */}
         <div className="search-row">
-          <div className="search-bar"><span className="search-icon">🔍</span><input placeholder={t('搜索枪械名称、改装类型...')} value={detailSearch} onChange={e => setDetailSearch(e.target.value)} /></div>
+          <div className="search-bar"><span className="search-icon"><IconSearch size={16} /></span><input placeholder={t('搜索枪械名称、改装类型...')} value={detailSearch} onChange={e => setDetailSearch(e.target.value)} /></div>
           <select className="filter-select" value={filterVer} onChange={e => setFilterVer(e.target.value)}>{versions.map(v => <option key={v} value={v}>{v === '全部' ? t('全部段位') : v}</option>)}</select>
           <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}><option value="default">{t('默认排序')}</option><option value="price_asc">{t('价格 低→高')}</option><option value="price_desc">{t('价格 高→低')}</option></select>
         </div>
@@ -566,7 +567,7 @@ function Community() {
           <div className="loading" style={{ color: 'var(--text-muted)' }}>{guns.length === 0 ? t('还没有枪械，使用上方搜索框添加') : t('没有找到匹配的枪械')}</div>
         ) : (
           filtered.map(gun => {
-            const catC = CAT_COLOR[gun.category] || '#1ecc60';
+            const catC = catColor(gun.category);
             // Same column layout for every gun card; empty values render blank.
             const showVersion = true;
             const showPrice = true;
@@ -576,11 +577,11 @@ function Community() {
             return (
               <div key={gun.id} className="gun-card">
                 <div className="gun-card-header" style={{ background: `linear-gradient(135deg, ${catC}08 0%, transparent 50%)` }}>
-                  {gun.image_url ? <img src={gun.image_url} alt={gun.name} className="gun-header-img" /> : <div className="gun-icon">{CAT_ICON[gun.category] || '🔫'}</div>}
+                  {gun.image_url ? <img src={gun.image_url} alt={gun.name} className="gun-header-img" /> : <div className="gun-icon" style={{ color: catC }}><WeaponIcon category={gun.category} size={26} /></div>}
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                       <span className="gun-name">{gun.name}</span>
-                      <span className="cat-badge" style={{ background: `${catC}18`, color: catC, border: `1px solid ${catC}33` }}>{CAT_ICON[gun.category] || ''} {t(gun.category)}</span>
+                      <span className="cat-badge" style={{ background: `${catC}18`, color: catC, border: `1px solid ${catC}33` }}><WeaponIcon category={gun.category} size={13} /> {t(gun.category)}</span>
                     </div>
                     <div className="gun-count">{t('{n} 个配置方案', { n: gun.variants.length })}</div>
                   </div>
@@ -642,12 +643,10 @@ function Community() {
     <div>
       <SEO title={t('玩家社区')} path="/community" description={t('三角洲行动玩家改枪码分享社区，注册分享你的武器配置方案，交流改枪心得。')} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <h1 className="page-title">🌐 {t('玩家社区')}</h1>
+        <PageTitle icon={IconUsers}>{t('玩家社区')}</PageTitle>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {player ? (<>
-            <div onClick={openProfile} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 10px', borderRadius: 20, background: 'rgba(32,232,112,0.06)', border: '1px solid rgba(32,232,112,0.15)', transition: 'all 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(32,232,112,0.4)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(32,232,112,0.15)'; }}>
+            <div onClick={openProfile} className="hover-card" style={{ '--hover-border': 'rgba(32,232,112,0.4)', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 10px', borderRadius: 20, background: 'rgba(32,232,112,0.06)', border: '1px solid rgba(32,232,112,0.15)', transition: 'all 0.15s' }}>
               {player.avatar_url ? <img src={player.avatar_url} alt="" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
               : <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(32,232,112,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{(player.nickname || player.username || '?').charAt(0).toUpperCase()}</div>}
               <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{player.nickname || player.username}</span>
@@ -662,7 +661,7 @@ function Community() {
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('分享和发现玩家的改枪方案 · 点击作者查看改枪码')}</p>
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-        <div className="search-bar" style={{ flex: '1 1 200px' }}><span className="search-icon">🔍</span><input placeholder={t('搜索玩家...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
+        <div className="search-bar" style={{ flex: '1 1 200px' }}><span className="search-icon"><IconSearch size={16} /></span><input placeholder={t('搜索玩家...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
         {player && <button className="btn btn-primary" onClick={() => setSelectedPlayerId(player.id)}>✏️ {t('我的改枪码')}</button>}
       </div>
 
@@ -698,8 +697,8 @@ function Community() {
                   <span style={{ fontSize: 18, color: 'var(--text-muted)' }}>→</span>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <span className="author-stat">🔫 {t('{n} 把武器', { n: st.gunCount })}</span>
-                  <span className="author-stat">📋 {t('{n} 个配置', { n: st.variantCount })}</span>
+                  <span className="author-stat"><WeaponIcon category="突击步枪" size={13} /> {t('{n} 把武器', { n: st.gunCount })}</span>
+                  <span className="author-stat"><IconListDetails size={13} /> {t('{n} 个配置', { n: st.variantCount })}</span>
                 </div>
               </div>
             );

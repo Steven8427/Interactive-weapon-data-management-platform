@@ -3,21 +3,44 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Landing from './pages/Landing';
 import { useT, LanguageSwitcher } from './i18n';
+import {
+  IconHome, IconMicrophone2, IconFlame, IconTarget, IconUsers, IconKey, IconCoin,
+  IconChartLine, IconBook2, IconCards, IconMap2, IconSettings, IconChevronLeft, IconChevronRight,
+} from '@tabler/icons-react';
 
 // Route-level code splitting: each page's JS downloads only when opened
 // (the home page stays in the main bundle for the fastest first paint).
-const Admin = lazy(() => import('./pages/Admin'));
-const DailyPassword = lazy(() => import('./pages/DailyPassword'));
-const Manufacturing = lazy(() => import('./pages/Manufacturing'));
-const PriceTrend = lazy(() => import('./pages/PriceTrend'));
-const MapTool = lazy(() => import('./pages/MapTool'));
-const Loadout = lazy(() => import('./pages/Loadout'));
-const OfficialCodes = lazy(() => import('./pages/OfficialCodes'));
-const Streamers = lazy(() => import('./pages/Streamers'));
-const Community = lazy(() => import('./pages/Community'));
-const Legal = lazy(() => import('./pages/Legal'));
-const ItemCatalog = lazy(() => import('./pages/ItemCatalog'));
-const GunLanding = lazy(() => import('./pages/GunLanding'));
+// After a new deploy the old chunk files are gone, so a tab opened before the
+// deploy would fail to load the next page ("Loading chunk … failed"). In that
+// case reload once to pick up the new build instead of showing a blank page.
+const RELOAD_FLAG = 'chunk-reload';
+function lazyPage(factory) {
+  return lazy(() => factory().then(mod => {
+    try { sessionStorage.removeItem(RELOAD_FLAG); } catch (e) { /* ignore */ }
+    return mod;
+  }, err => {
+    let reloaded = false;
+    try { reloaded = !!sessionStorage.getItem(RELOAD_FLAG); } catch (e) { /* ignore */ }
+    if (/ChunkLoadError|Loading (CSS )?chunk|dynamically imported module/i.test(String(err && (err.name + ' ' + err.message))) && !reloaded) {
+      try { sessionStorage.setItem(RELOAD_FLAG, '1'); } catch (e) { /* ignore */ }
+      window.location.reload();
+      return new Promise(() => {}); // keep the fallback until the reload happens
+    }
+    throw err;
+  }));
+}
+const Admin = lazyPage(() => import('./pages/Admin'));
+const DailyPassword = lazyPage(() => import('./pages/DailyPassword'));
+const Manufacturing = lazyPage(() => import('./pages/Manufacturing'));
+const PriceTrend = lazyPage(() => import('./pages/PriceTrend'));
+const MapTool = lazyPage(() => import('./pages/MapTool'));
+const Loadout = lazyPage(() => import('./pages/Loadout'));
+const OfficialCodes = lazyPage(() => import('./pages/OfficialCodes'));
+const Streamers = lazyPage(() => import('./pages/Streamers'));
+const Community = lazyPage(() => import('./pages/Community'));
+const Legal = lazyPage(() => import('./pages/Legal'));
+const ItemCatalog = lazyPage(() => import('./pages/ItemCatalog'));
+const GunLanding = lazyPage(() => import('./pages/GunLanding'));
 
 const PageFallback = () => <div className="loading"><div className="spinner"></div></div>;
 
@@ -29,18 +52,18 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const navItems = [
-    { path: '/', icon: '🏠', label: t('首页') },
-    { path: '/streamers', icon: '🎙️', label: t('主播同款改枪码') },
-    { path: '/official', icon: '🔥', label: t('官方热门改枪码') },
-    { path: '/gun', icon: '🔫', label: t('武器改枪码大全') },
-    { path: '/community', icon: '🌐', label: t('玩家社区') },
-    { path: '/daily', icon: '🔑', label: t('每日密码') },
-    { path: '/profit', icon: '💰', label: t('特勤处制造利润') },
-    { path: '/prices', icon: '📈', label: t('价格走势图') },
-    { path: '/items', icon: '📖', label: t('物品图鉴') },
-    { path: '/cards', icon: '🃏', label: t('卡战备系统') },
-    { path: '/map', icon: '🗺️', label: t('官方地图工具') },
-    { path: '/admin', icon: '⚙️', label: t('管理后台') },
+    { path: '/', Icon: IconHome, label: t('首页') },
+    { path: '/streamers', Icon: IconMicrophone2, label: t('主播同款改枪码') },
+    { path: '/official', Icon: IconFlame, label: t('官方热门改枪码') },
+    { path: '/gun', Icon: IconTarget, label: t('武器改枪码大全') },
+    { path: '/community', Icon: IconUsers, label: t('玩家社区') },
+    { path: '/daily', Icon: IconKey, label: t('每日密码') },
+    { path: '/profit', Icon: IconCoin, label: t('特勤处制造利润') },
+    { path: '/prices', Icon: IconChartLine, label: t('价格走势图') },
+    { path: '/items', Icon: IconBook2, label: t('物品图鉴') },
+    { path: '/cards', Icon: IconCards, label: t('卡战备系统') },
+    { path: '/map', Icon: IconMap2, label: t('官方地图工具') },
+    { path: '/admin', Icon: IconSettings, label: t('管理后台') },
   ];
 
   const isActive = (path) => {
@@ -65,7 +88,7 @@ function App() {
               className={`sidebar-item ${isActive(item.path) ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}
               title={sidebarCollapsed ? item.label : ''}>
-              <span className="sidebar-icon">{item.icon}</span>
+              <span className="sidebar-icon"><item.Icon size={19} stroke={1.75} /></span>
               {!sidebarCollapsed && <span className="sidebar-label">{item.label}</span>}
             </Link>
           ))}
@@ -75,8 +98,8 @@ function App() {
             <LanguageSwitcher dropUp fullWidth />
           </div>
         )}
-        <button className="sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-          {sidebarCollapsed ? '▶' : '◀'}
+        <button className="sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} aria-label={sidebarCollapsed ? t('展开侧边栏') : t('收起侧边栏')}>
+          {sidebarCollapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
         </button>
       </aside>
       <div className={`main-wrapper ${sidebarCollapsed ? 'collapsed' : ''}`}>

@@ -1,12 +1,16 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { IconMicrophone2, IconSearch } from '@tabler/icons-react';
+import Pager from '../components/Pager';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import { fetchAllRows, ACCESSORY_CLASSES } from '../supabaseFetch';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
+import { catColor } from '../weaponCategories';
 
-const CAT_COLOR = {"突击步枪":"#30d060","战斗步枪":"#e0a030","射手步枪":"#50b0e0","冲锋枪":"#d050d0","机枪":"#e06030","狙击步枪":"#4090f0","连狙":"#60c0c0","霰弹枪":"#d04040","手枪":"#a0a0a0","弓弩":"#90d040"};
+const PAGE_SIZE = 24;
 const SLOT_NAME = {"1":"弹匣","2":"枪口","3":"握把","5":"枪托","6":"瞄具","8":"激光","11":"护木","17":"导轨","20":"导轨","32":"导轨","34":"导轨","35":"导轨","44":"弹鼓"};
 
 function Streamers() {
@@ -62,6 +66,13 @@ function Streamers() {
     return streamers.filter(st => st.name.toLowerCase().includes(search.toLowerCase()));
   }, [streamers, search]);
 
+  // pagination for the streamer list (back to page 1 when searching)
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [search]);
+  const pageCount = Math.max(1, Math.ceil(filteredStreamers.length / PAGE_SIZE));
+  const curPage = Math.min(page, pageCount);
+  const pageStreamers = filteredStreamers.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
   const streamerCodes = useMemo(() => {
     if (!selectedStreamer) return [];
     let list = codes.filter(c => c.author_nickname === selectedStreamer).sort((a, b) => (b.apply_num || 0) - (a.apply_num || 0));
@@ -103,13 +114,13 @@ function Streamers() {
         </div>
 
         <div className="search-bar" style={{ marginBottom: 16, flex: 'none' }}>
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><IconSearch size={16} /></span>
           <input placeholder={t('搜索枪名或方案名...')} value={codeSearch} onChange={e => setCodeSearch(e.target.value)} />
         </div>
 
         <div style={{ display: 'grid', gap: 10 }}>
           {streamerCodes.map(code => {
-            const catC = CAT_COLOR[code.arms_category] || '#20e870';
+            const catC = catColor(code.arms_category);
             const isExpanded = expandedId === code.id;
             const accessories = isExpanded ? getAccessories(code) : [];
             const accTotal = accessories.reduce((s, a) => s + a.price, 0);
@@ -170,18 +181,18 @@ function Streamers() {
     );
   }
 
-  // 主播列表
+  // 主播列表（.page-fill + <Pager>：翻页栏固定在页脚上方）
   return (
-    <div>
+    <div className="page-fill">
       <SEO title={t('主播同款改枪码')} path="/streamers" description={t('三角洲行动主播改枪码合集，热门主播同款武器配置方案，一键复制使用。')} />
-      <h1 className="page-title">🎙️ {t('主播同款改枪码')}</h1>
+      <PageTitle icon={IconMicrophone2}>{t('主播同款改枪码')}</PageTitle>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('来自官方社区 · {n} 位主播 · {c} 个方案', { n: streamers.length, c: codes.length })}</p>
-      <div className="search-bar" style={{ marginBottom: 20, flex: 'none' }}><span className="search-icon">🔍</span><input placeholder={t('搜索主播名称...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
+      <div className="search-bar" style={{ marginBottom: 20, flex: 'none' }}><span className="search-icon"><IconSearch size={16} /></span><input placeholder={t('搜索主播名称...')} value={search} onChange={e => setSearch(e.target.value)} /></div>
       {filteredStreamers.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>{t('没有找到「{q}」相关的主播', { q: search })}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
-          {filteredStreamers.map(s => (
+          {pageStreamers.map(s => (
             <div key={s.name} className="author-card" onClick={() => setSelectedStreamer(s.name)}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                 {s.avatar ? <img src={s.avatar} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent)', flexShrink: 0 }} />
@@ -199,6 +210,7 @@ function Streamers() {
           ))}
         </div>
       )}
+      <Pager page={curPage} pageCount={pageCount} onChange={setPage} />
     </div>
   );
 }

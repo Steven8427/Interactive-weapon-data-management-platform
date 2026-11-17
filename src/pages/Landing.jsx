@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { IconMicrophone2, IconFlame, IconUsers, IconKey, IconCoin, IconCards, IconChartLine, IconBook2 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
@@ -57,19 +58,17 @@ function Landing() {
       {/* 快捷入口 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10, marginBottom: 28 }}>
         {[
-          { to: '/streamers', icon: '🎙️', label: t('主播改枪码'), color: '#20e870' },
-          { to: '/official', icon: '🔥', label: t('官方热门'), color: '#e06040' },
-          { to: '/community', icon: '🌐', label: t('玩家社区'), color: '#d050d0' },
-          { to: '/daily', icon: '🔑', label: t('每日密码'), color: '#18a0d0' },
-          { to: '/profit', icon: '💰', label: t('制造利润'), color: '#e0a030' },
-          { to: '/cards', icon: '🃏', label: t('卡战备'), color: '#4090f0' },
-          { to: '/prices', icon: '📈', label: t('价格走势'), color: '#60c0c0' },
-          { to: '/items', icon: '📖', label: t('物品图鉴'), color: '#c060e0' },
+          { to: '/streamers', Icon: IconMicrophone2, label: t('主播改枪码'), color: '#20e870' },
+          { to: '/official', Icon: IconFlame, label: t('官方热门'), color: '#e06040' },
+          { to: '/community', Icon: IconUsers, label: t('玩家社区'), color: '#d050d0' },
+          { to: '/daily', Icon: IconKey, label: t('每日密码'), color: '#18a0d0' },
+          { to: '/profit', Icon: IconCoin, label: t('制造利润'), color: '#e0a030' },
+          { to: '/cards', Icon: IconCards, label: t('卡战备'), color: '#4090f0' },
+          { to: '/prices', Icon: IconChartLine, label: t('价格走势'), color: '#60c0c0' },
+          { to: '/items', Icon: IconBook2, label: t('物品图鉴'), color: '#c060e0' },
         ].map(item => (
-          <Link key={item.to} to={item.to} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 10px', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = `${item.color}50`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; }}>
-            <div style={{ fontSize: 28, marginBottom: 6 }}>{item.icon}</div>
+          <Link key={item.to} to={item.to} className="hover-card hover-lift" style={{ '--hover-border': `${item.color}50`, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 10px', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s' }}>
+            <div className="tile-icon" style={{ color: item.color, background: item.color + '14', borderColor: item.color + '33' }}><item.Icon size={24} stroke={1.75} /></div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{item.label}</div>
           </Link>
         ))}
@@ -77,7 +76,7 @@ function Landing() {
 
       {/* 今日密码 */}
       {passwords.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🔑 {t('今日密码')}</h2><Link to="/daily" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }} className="section-title"><IconKey size={19} />{t('今日密码')}</h2><Link to="/daily" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
           {passwords.map(pw => { const m = PW_META[pw.map_name] || { icon: '🗺️', color: '#20e870' }; return (
             <div key={pw.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
@@ -89,11 +88,10 @@ function Landing() {
 
       {/* 今日最赚 */}
       {topMfg.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>💰 {t('今日最赚')}</h2><Link to="/profit" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }} className="section-title"><IconCoin size={19} />{t('今日最赚')}</h2><Link to="/profit" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
           {topMfg.map(item => (
-            <Link key={item.id} to="/profit" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: 14, textDecoration: 'none', transition: 'border-color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(32,232,112,0.3)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+            <Link key={item.id} to="/profit" className="hover-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: 14, textDecoration: 'none', transition: 'border-color 0.2s' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>{item.item_image && <img src={item.item_image} alt="" style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6, background: 'linear-gradient(135deg, #1a2a3a, #1e3040)' }} onError={e => e.target.style.display = 'none'} />}<div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.item_name}</div></div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.place_name} · {item.period}h</span><span style={{ fontSize: 17, fontWeight: 900, color: '#20e870', fontFamily: "'Orbitron', monospace" }}>+{formatPrice(item.profit)}</span></div>
             </Link>
@@ -103,12 +101,10 @@ function Landing() {
 
       {/* 热门主播 */}
       {topStreamers.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🎙️ {t('热门主播')}</h2><Link to="/streamers" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }} className="section-title"><IconMicrophone2 size={19} />{t('热门主播')}</h2><Link to="/streamers" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
           {topStreamers.map(s => (
-            <Link key={s.name} to="/streamers" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 12px', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(32,232,112,0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; }}>
+            <Link key={s.name} to="/streamers" className="hover-card hover-lift" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 12px', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s' }}>
               {s.avatar ? <img src={s.avatar} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent)', marginBottom: 8 }} />
               : <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(32,232,112,0.1)', border: '2px solid var(--accent)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{s.name.charAt(0)}</div>}
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
@@ -120,11 +116,10 @@ function Landing() {
 
       {/* 热门改枪码 */}
       {hotCodes.length > 0 && (<div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }}>🔥 {t('热门改枪码')}</h2><Link to="/official" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h2 style={{ fontSize: 18, fontWeight: 700 }} className="section-title"><IconFlame size={19} />{t('热门改枪码')}</h2><Link to="/official" style={{ fontSize: 13, color: 'var(--accent)', textDecoration: 'none' }}>{t('查看全部')} →</Link></div>
         <div style={{ display: 'grid', gap: 10 }}>
           {hotCodes.map((code, idx) => (
-            <div key={code.id} onClick={() => copyCode(code.solution_code)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 14px', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', transition: 'border-color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(32,232,112,0.3)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+            <div key={code.id} onClick={() => copyCode(code.solution_code)} className="hover-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 14px', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', transition: 'border-color 0.2s' }}>
               <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: idx < 3 ? 'rgba(224,160,48,0.15)' : 'var(--bg-secondary)', border: `1px solid ${idx < 3 ? 'rgba(224,160,48,0.3)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Orbitron', monospace", fontSize: 12, fontWeight: 700, color: idx < 3 ? '#e0a030' : 'var(--text-muted)' }}>{idx + 1}</div>
               {code.arms_pic && <img src={code.arms_pic} alt="" style={{ width: 52, height: 38, objectFit: 'contain', borderRadius: 6, background: 'linear-gradient(135deg, #1a2a3a, #1e3040)', border: '1px solid var(--border)', padding: 2, flexShrink: 0 }} />}
               <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{code.name}</div><div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{code.author_nickname} · {formatPrice(code.price)}</div></div>

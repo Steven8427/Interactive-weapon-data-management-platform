@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
+import { IconKey } from '@tabler/icons-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 
 const MAPS = [
@@ -85,7 +87,7 @@ function DailyPassword() {
   return (
     <div>
       <SEO title={t('每日密码')} path="/daily" description={t('三角洲行动每日地图密码查询，零号大坝、长弓溪谷、巴克什、航天基地、潮汐监狱每日更新。')} />
-      <h1 className="page-title">{t('每日密码')}</h1>
+      <PageTitle icon={IconKey}>{t('每日密码')}</PageTitle>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>
         {t('更新时间：')}{formatTime(lastUpdate) || t('暂无数据')}
         {latestDate && !isToday && (
@@ -113,13 +115,12 @@ function DailyPassword() {
                 style={{
                   background: 'var(--bg-card)',
                   border: `1px solid ${isCopied ? map.color : 'var(--border)'}`,
-                  borderRadius: 16, padding: '26px 20px',
+                  '--hover-border': map.color, '--hover-glow': `${map.color}18`, borderRadius: 16, padding: '26px 20px',
                   cursor: 'pointer', transition: 'all 0.2s',
                   textAlign: 'center', position: 'relative', overflow: 'hidden',
                   transform: isCopied ? 'scale(1.02)' : 'scale(1)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = map.color; e.currentTarget.style.boxShadow = `0 4px 24px ${map.color}18`; }}
-                onMouseLeave={e => { if (!isCopied) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; } }}
+                className="hover-card hover-glow"
               >
                 {/* 顶部渐变条 */}
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${map.color}, ${map.color}66)` }} />

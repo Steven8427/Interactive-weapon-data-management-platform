@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { IconMap2 } from '@tabler/icons-react';
 import SEO from '../components/SEO';
+import PageTitle from '../components/PageTitle';
 import { useT } from '../i18n';
 
 const MAP_URL = 'https://df.qq.com/cp/a20240729directory/';
@@ -14,7 +16,7 @@ function MapTool() {
       <SEO title={t('官方地图工具')} path="/map" description={t('三角洲行动官方互动地图，查看物资点、出生点、撤离点、首领坐标等关键信息。')} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
-          <h1 className="page-title">{t('官方地图工具')}</h1>
+          <PageTitle icon={IconMap2}>{t('官方地图工具')}</PageTitle>
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
             {t('三角洲行动官方互动地图 · 物资点 · 出生点 · 撤离点 · 首领坐标')}
           </p>
