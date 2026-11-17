@@ -1,5 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
+import { useCachedData } from '../dataCache';
+import { fetchAllRows } from '../supabaseFetch';
+
+const HISTORY_DAYS = 30; // detail chart
+const SPARK_DAYS = 14;   // list mini charts
+const EMPTY_LIST = [];
+const EMPTY_OBJ = {};
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 
@@ -29,53 +36,54 @@ const CAT_COLORS = {
 
 function PriceTrend() {
   const { t } = useT();
-  const [todayPrices, setTodayPrices] = useState([]);
-  const [historyData, setHistoryData] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCat, setSelectedCat] = useState('all');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('price_desc');
   const [selectedItem, setSelectedItem] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState('');
+  const [itemHistory, setItemHistory] = useState([]);
 
-  useEffect(() => { fetchPrices(); }, []);
-
-  async function fetchPrices() {
-    setLoading(true);
-
-    // 获取最新一天的价格
-    const { data: dates } = await supabase
-      .from('price_history')
-      .select('date')
-      .order('date', { ascending: false })
-      .limit(1);
-
+  // 最新一天的价格（缓存，刷新后秒开）
+  // + 列表迷你图用的每个物品最近 14 天价格（price_sparklines RPC，一次 ~36KB）
+  const fetchPrices = useCallback(async () => {
+    const [{ data: dates }, { data: sparks }] = await Promise.all([
+      supabase.from('price_history').select('date').order('date', { ascending: false }).limit(1),
+      supabase.rpc('price_sparklines', { days: SPARK_DAYS }),
+    ]);
     const latestDate = dates?.[0]?.date;
-    if (!latestDate) { setLoading(false); return; }
-
-    const { data: today } = await supabase
+    if (!latestDate) return { today: [], latestDate: '', sparks: {} };
+    const today = await fetchAllRows(() => supabase
       .from('price_history')
       .select('*')
       .eq('date', latestDate)
-      .order('avg_price', { ascending: false });
+      .order('avg_price', { ascending: false })
+      .order('id'));
+    const sparkMap = {};
+    (sparks || []).forEach(s => { sparkMap[s.object_id] = s.prices; });
+    return { today, latestDate, sparks: sparkMap };
+  }, []);
+  const [data, loading] = useCachedData('price_today', fetchPrices);
+  const todayPrices = data?.today || EMPTY_LIST;
+  const lastUpdate = data?.latestDate || '';
+  const sparks = data?.sparks || EMPTY_OBJ;
 
-    setTodayPrices(today || []);
-    setLastUpdate(latestDate);
-
-    // 获取历史数据（最近30天）
-    const { data: history } = await supabase
+  // 选中物品的历史数据：只拉这一个物品最近 30 天（之前是全表最旧的 1000 行）
+  useEffect(() => {
+    if (!selectedItem || !lastUpdate) { setItemHistory([]); return; }
+    let cancelled = false;
+    const since = new Date(new Date(lastUpdate).getTime() - HISTORY_DAYS * 86400000).toISOString().slice(0, 10);
+    supabase
       .from('price_history')
       .select('object_id, object_name, avg_price, date')
+      .eq('object_id', selectedItem.object_id)
+      .gte('date', since)
       .order('date', { ascending: true })
-      .limit(10000);
-
-    setHistoryData(history || []);
-    setLoading(false);
-  }
+      .then(({ data: rows }) => { if (!cancelled) setItemHistory(rows || []); });
+    return () => { cancelled = true; };
+  }, [selectedItem, lastUpdate]);
 
   // 搜索和筛选
   const filtered = useMemo(() => {
-    let items = todayPrices;
+    let items = [...todayPrices];
     if (selectedCat !== 'all') items = items.filter(i => i.category === selectedCat);
     if (search.trim()) items = items.filter(i => i.object_name.toLowerCase().includes(search.toLowerCase()));
 
@@ -87,14 +95,6 @@ function PriceTrend() {
     });
     return items;
   }, [todayPrices, selectedCat, search, sortBy]);
-
-  // 选中物品的历史数据
-  const itemHistory = useMemo(() => {
-    if (!selectedItem) return [];
-    return historyData
-      .filter(h => h.object_id === selectedItem.object_id)
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }, [selectedItem, historyData]);
 
   function formatPrice(n) {
     if (!n && n !== 0) return '-';
@@ -271,7 +271,7 @@ function PriceTrend() {
         <div style={{ display: 'grid', gap: 6 }}>
           {filtered.map(item => {
             const color = CAT_COLORS[item.category] || '#20e870';
-            const itemHist = historyData.filter(h => h.object_id === item.object_id).sort((a, b) => a.date.localeCompare(b.date));
+            const itemHist = (sparks[item.object_id] || EMPTY_LIST).map(p => ({ avg_price: p }));
             const prevPrice = itemHist.length >= 2 ? itemHist[itemHist.length - 2].avg_price : null;
             const change = prevPrice ? item.avg_price - prevPrice : null;
             const changePct = prevPrice ? ((change / prevPrice) * 100).toFixed(1) : null;

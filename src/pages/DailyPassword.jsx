@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
+import { useCachedData } from '../dataCache';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 
@@ -15,37 +16,25 @@ const MAPS = [
 
 function DailyPassword() {
   const { t } = useT();
-  const [passwords, setPasswords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState('');
   const [copied, setCopied] = useState('');
 
-  useEffect(() => { fetchPasswords(); }, []);
-
-  async function fetchPasswords() {
-    setLoading(true);
+  // One request: newest rows first. Show today's rows if present, otherwise
+  // the latest 10 (same result as the old today-then-fallback two queries).
+  const fetchPasswords = useCallback(async () => {
     const today = new Date().toISOString().split('T')[0];
-
-    let { data } = await supabase
+    const { data } = await supabase
       .from('daily_passwords')
       .select('*')
-      .eq('date', today)
-      .order('map_id', { ascending: true });
-
-    if (!data || data.length === 0) {
-      const { data: latest } = await supabase
-        .from('daily_passwords')
-        .select('*')
-        .order('date', { ascending: false })
-        .order('map_id', { ascending: true })
-        .limit(10);
-      data = latest || [];
-    }
-
-    setPasswords(data);
-    if (data.length > 0) setLastUpdate(data[0].updated_at || data[0].date);
-    setLoading(false);
-  }
+      .order('date', { ascending: false })
+      .order('map_id', { ascending: true })
+      .limit(20);
+    const rows = data || [];
+    const todays = rows.filter(r => String(r.date).slice(0, 10) === today);
+    return todays.length ? todays : rows.slice(0, 10);
+  }, []);
+  const [data, loading] = useCachedData('daily_passwords', fetchPasswords);
+  const passwords = data || [];
+  const lastUpdate = passwords.length > 0 ? (passwords[0].updated_at || passwords[0].date) : '';
 
   function formatTime(ts) {
     if (!ts) return '';

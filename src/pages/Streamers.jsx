@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import { fetchAllRows, ACCESSORY_CLASSES } from '../supabaseFetch';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 
@@ -16,9 +17,9 @@ function Streamers() {
   const [expandedId, setExpandedId] = useState(null);
 
   const fetchData = useCallback(async () => {
-    const [{ data: codesData }, { data: itemsData }, { data: streamersData }] = await Promise.all([
+    const [{ data: codesData }, itemsData, { data: streamersData }] = await Promise.all([
       supabase.from('official_gun_codes').select('*').neq('is_hidden', true).order('apply_num', { ascending: false }),
-      supabase.from('game_items').select('object_id, object_name, pic, avg_price, grade, second_class_cn'),
+      fetchAllRows(() => supabase.from('game_items').select('object_id, object_name, pic, avg_price, grade, second_class_cn').in('primary_class', ACCESSORY_CLASSES).order('object_id')),
       supabase.from('streamers').select('*').eq('is_hidden', false).order('sort_order'),
     ]);
     const map = {};

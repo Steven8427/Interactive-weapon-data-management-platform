@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import { fetchAllRows, ACCESSORY_CLASSES } from '../supabaseFetch';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 
@@ -16,9 +17,9 @@ function OfficialCodes() {
   const [expandedId, setExpandedId] = useState(null);
 
   const fetchData = useCallback(async () => {
-    const [{ data: codesData }, { data: itemsData }] = await Promise.all([
+    const [{ data: codesData }, itemsData] = await Promise.all([
       supabase.from('official_gun_codes').select('*').neq('is_hidden', true).order('sort_order'),
-      supabase.from('game_items').select('object_id, object_name, pic, avg_price, grade'),
+      fetchAllRows(() => supabase.from('game_items').select('object_id, object_name, pic, avg_price, grade').in('primary_class', ACCESSORY_CLASSES).order('object_id')),
     ]);
     const map = {};
     (itemsData || []).forEach(i => { map[i.object_id] = i; });

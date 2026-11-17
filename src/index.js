@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 import { I18nProvider, resolveRoute } from './i18n';
+import '@fontsource/orbitron/latin-700.css';
+import '@fontsource/orbitron/latin-900.css';
 import './styles/index.css';
 
 // Language variants live under a URL prefix (/en, /ja, /ko, /zh-tw); route

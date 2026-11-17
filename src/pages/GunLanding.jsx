@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import { fetchAllRows } from '../supabaseFetch';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 import { gunSlug, weaponModel } from '../gunSlug';
@@ -15,13 +16,13 @@ function GunLanding() {
   const [search, setSearch] = useState('');
 
   const fetchAll = useCallback(async () => {
-    const [official, gunsData, variantsData, playersData] = await Promise.all([
+    const [official, guns, variants, playersData] = await Promise.all([
       supabase.from('official_gun_codes').select('id, name, arms_name, arms_category, arms_pic, solution_code, author_nickname, apply_num, price').neq('is_hidden', true).order('apply_num', { ascending: false }),
-      supabase.from('guns').select('id, name, category, image_url, player_id'),
-      supabase.from('gun_variants').select('id, gun_id, code, version, price, mod_type, status'),
+      fetchAllRows(() => supabase.from('guns').select('id, name, category, image_url, player_id').order('id')),
+      fetchAllRows(() => supabase.from('gun_variants').select('id, gun_id, code, version, price, mod_type, status').or('status.is.null,status.eq.approved').order('id')),
       supabase.from('players').select('id, nickname, username'),
     ]);
-    return { official: official.data || [], guns: gunsData.data || [], variants: variantsData.data || [], players: playersData.data || [] };
+    return { official: official.data || [], guns, variants, players: playersData.data || [] };
   }, []);
   const [data, loading] = useCachedData('gun_landing_all', fetchAll);
 

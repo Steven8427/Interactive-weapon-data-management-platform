@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Landing from './pages/Landing';
-import Admin from './pages/Admin';
-import DailyPassword from './pages/DailyPassword';
-import Manufacturing from './pages/Manufacturing';
-import PriceTrend from './pages/PriceTrend';
-import MapTool from './pages/MapTool';
-import Loadout from './pages/Loadout';
-import OfficialCodes from './pages/OfficialCodes';
-import Streamers from './pages/Streamers';
-import Community from './pages/Community';
-import Legal from './pages/Legal';
-import ItemCatalog from './pages/ItemCatalog';
-import GunLanding from './pages/GunLanding';
 import { useT, LanguageSwitcher } from './i18n';
+
+// Route-level code splitting: each page's JS downloads only when opened
+// (the home page stays in the main bundle for the fastest first paint).
+const Admin = lazy(() => import('./pages/Admin'));
+const DailyPassword = lazy(() => import('./pages/DailyPassword'));
+const Manufacturing = lazy(() => import('./pages/Manufacturing'));
+const PriceTrend = lazy(() => import('./pages/PriceTrend'));
+const MapTool = lazy(() => import('./pages/MapTool'));
+const Loadout = lazy(() => import('./pages/Loadout'));
+const OfficialCodes = lazy(() => import('./pages/OfficialCodes'));
+const Streamers = lazy(() => import('./pages/Streamers'));
+const Community = lazy(() => import('./pages/Community'));
+const Legal = lazy(() => import('./pages/Legal'));
+const ItemCatalog = lazy(() => import('./pages/ItemCatalog'));
+const GunLanding = lazy(() => import('./pages/GunLanding'));
+
+const PageFallback = () => <div className="loading"><div className="spinner"></div></div>;
 
 function App() {
   const location = useLocation();
@@ -50,7 +55,7 @@ function App() {
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <Link to="/" className="sidebar-logo" onClick={() => setSidebarOpen(false)}>
-            <img src="/logo.png" alt="logo" className="sidebar-logo-img" onError={e => { e.target.style.display = 'none'; }} />
+            <img src="/logo-64.png" alt="logo" className="sidebar-logo-img" onError={e => { e.target.style.display = 'none'; }} />
             {!sidebarCollapsed && <span className="sidebar-logo-text">{t('有力气的改枪')}</span>}
           </Link>
         </div>
@@ -80,12 +85,13 @@ function App() {
             <span></span><span></span><span></span>
           </button>
           <Link to="/" className="topbar-logo">
-            <img src="/logo.png" alt="" style={{ height: 26, width: 26, objectFit: 'contain', borderRadius: 4 }} onError={e => { e.target.style.display = 'none'; }} />
+            <img src="/logo-64.png" alt="" style={{ height: 26, width: 26, objectFit: 'contain', borderRadius: 4 }} onError={e => { e.target.style.display = 'none'; }} />
             <span>{t('有力气的改枪网站')}</span>
           </Link>
           <LanguageSwitcher />
         </header>
         <main className="main-content">
+          <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/streamers" element={<Streamers />} />
@@ -102,6 +108,7 @@ function App() {
             <Route path="/admin" element={<Admin isAdmin={isAdmin} setIsAdmin={setIsAdmin} />} />
             <Route path="/legal" element={<Legal />} />
           </Routes>
+          </Suspense>
         </main>
         <footer style={{
           borderTop: '1px solid var(--border)', padding: '16px 28px',

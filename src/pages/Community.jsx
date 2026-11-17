@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
+import { getCached, setCache } from '../dataCache';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
@@ -84,38 +85,39 @@ function Community() {
   }
 
   // Fetch player list with gun stats
+  // Players + per-player counts in one parallel round (counts come from the
+  // player_gun_stats view instead of downloading every gun and variant).
+  // Cached data renders instantly; fresh data replaces it when it arrives.
   const fetchPlayerList = useCallback(async () => {
-    setLoading(true);
-    const { data: ps } = await supabase.from('players').select('id, username, nickname, avatar_url, description, created_at, profile_status').order('created_at');
-    setAllPlayers(ps || []);
-    // Get gun counts per player
-    const { data: gunData } = await supabase.from('guns').select('player_id, id');
-    const { data: varData } = await supabase.from('gun_variants').select('gun_id');
-    const gunsByPlayer = {};
-    const variantsByGun = {};
-    (gunData || []).forEach(g => { if (!g.player_id) return; if (!gunsByPlayer[g.player_id]) gunsByPlayer[g.player_id] = []; gunsByPlayer[g.player_id].push(g.id); });
-    (varData || []).forEach(v => { variantsByGun[v.gun_id] = (variantsByGun[v.gun_id] || 0) + 1; });
+    const cached = getCached('community_players');
+    if (cached) { setAllPlayers(cached.players); setPlayerGunStats(cached.stats); setLoading(false); }
+    else setLoading(true);
+    const [{ data: ps }, { data: statRows }] = await Promise.all([
+      supabase.from('players').select('id, username, nickname, avatar_url, description, created_at, profile_status').order('created_at'),
+      supabase.from('player_gun_stats').select('player_id, gun_count, variant_count'),
+    ]);
     const stats = {};
-    Object.entries(gunsByPlayer).forEach(([pid, gids]) => {
-      stats[pid] = { gunCount: gids.length, variantCount: gids.reduce((s, gid) => s + (variantsByGun[gid] || 0), 0) };
-    });
+    (statRows || []).forEach(r => { stats[r.player_id] = { gunCount: r.gun_count, variantCount: r.variant_count }; });
+    setAllPlayers(ps || []);
     setPlayerGunStats(stats);
+    if (ps) setCache('community_players', { players: ps, stats });
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchPlayerList(); }, [fetchPlayerList]);
 
-  // Fetch guns for selected player
+  // Fetch guns + their variants for the selected player in a single request.
   const fetchPlayerGuns = useCallback(async (pid) => {
-    setDetailLoading(true);
-    const { data: g } = await supabase.from('guns').select('*').eq('player_id', pid).order('sort_order');
-    const gunIds = (g || []).map(x => x.id);
-    let v = [];
-    if (gunIds.length > 0) {
-      const { data } = await supabase.from('gun_variants').select('*').in('gun_id', gunIds).order('sort_order');
-      v = data || [];
-    }
-    setGuns((g || []).map(gun => ({ ...gun, variants: v.filter(x => x.gun_id === gun.id) })));
+    const key = 'community_guns:' + pid;
+    const cached = getCached(key);
+    if (cached) { setGuns(cached); setDetailLoading(false); }
+    else setDetailLoading(true);
+    const { data: g } = await supabase.from('guns').select('*, gun_variants(*)')
+      .eq('player_id', pid).order('sort_order')
+      .order('sort_order', { referencedTable: 'gun_variants' });
+    const list = (g || []).map(({ gun_variants: vs, ...gun }) => ({ ...gun, variants: vs || [] }));
+    setGuns(list);
+    if (g) setCache(key, list);
     setDetailLoading(false);
   }, []);
 

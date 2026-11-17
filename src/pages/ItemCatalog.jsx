@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useCachedData } from '../dataCache';
+import { fetchAllRows } from '../supabaseFetch';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 
@@ -19,8 +20,9 @@ function ItemCatalog() {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const fetchItems = useCallback(async () => {
-    const { data } = await supabase.from('game_items').select('*').order('grade', { ascending: false }).order('avg_price', { ascending: false });
-    return data || [];
+    // Page past Supabase's 1000-row cap (id breaks ties so pages are stable).
+    return fetchAllRows(() => supabase.from('game_items').select('*')
+      .order('grade', { ascending: false }).order('avg_price', { ascending: false }).order('id'));
   }, []);
 
   const [rawItems, loading] = useCachedData('item_catalog', fetchItems);

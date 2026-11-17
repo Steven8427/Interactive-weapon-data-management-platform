@@ -1,39 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
+import { useCachedData } from '../dataCache';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 
+const EMPTY = { stats: { codes: 0, streamers: 0, guns: 0, variants: 0 }, hotCodes: [], topStreamers: [], passwords: [], topMfg: [] };
+
 function Landing() {
   const { t } = useT();
-  const [stats, setStats] = useState({ codes: 0, streamers: 0, guns: 0, variants: 0 });
-  const [hotCodes, setHotCodes] = useState([]);
-  const [topStreamers, setTopStreamers] = useState([]);
-  const [passwords, setPasswords] = useState([]);
-  const [topMfg, setTopMfg] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchAll() {
-      setLoading(true);
-      const [{ data: codes }, { data: pwData }, { data: mfgData }, { count: gunCount }, { count: variantCount }] = await Promise.all([
-        supabase.from('official_gun_codes').select('*').order('apply_num', { ascending: false }).limit(6),
-        supabase.from('daily_passwords').select('*').order('date', { ascending: false }).order('map_id').limit(6),
-        supabase.from('manufacturing_items').select('*').order('profit', { ascending: false }).limit(4),
-        supabase.from('guns').select('*', { count: 'exact', head: true }),
-        supabase.from('gun_variants').select('*', { count: 'exact', head: true }),
-      ]);
-      setHotCodes(codes || []); setPasswords(pwData || []); setTopMfg(mfgData || []);
-      const { data: allCodes } = await supabase.from('official_gun_codes').select('author_nickname, author_avatar, apply_num, like_num');
-      const sMap = {};
-      (allCodes || []).forEach(c => { const n = c.author_nickname; if (!n) return; if (!sMap[n]) sMap[n] = { name: n, avatar: c.author_avatar, count: 0, apply: 0 }; sMap[n].count++; sMap[n].apply += (c.apply_num || 0); });
-      setTopStreamers(Object.values(sMap).sort((a, b) => b.apply - a.apply).slice(0, 8));
-      setStats({ codes: (allCodes || []).length, streamers: Object.keys(sMap).length, guns: gunCount || 0, variants: variantCount || 0 });
-      setLoading(false);
-    }
-    fetchAll();
+  // All queries in one parallel round; result is cached (incl. localStorage).
+  const fetchAll = useCallback(async () => {
+    const [{ data: codes }, { data: pwData }, { data: mfgData }, { count: gunCount }, { count: variantCount }, { data: allCodes }] = await Promise.all([
+      supabase.from('official_gun_codes').select('*').order('apply_num', { ascending: false }).limit(6),
+      supabase.from('daily_passwords').select('*').order('date', { ascending: false }).order('map_id').limit(6),
+      supabase.from('manufacturing_items').select('*').order('profit', { ascending: false }).limit(4),
+      supabase.from('guns').select('*', { count: 'exact', head: true }),
+      supabase.from('gun_variants').select('*', { count: 'exact', head: true }),
+      supabase.from('official_gun_codes').select('author_nickname, author_avatar, apply_num, like_num'),
+    ]);
+    const sMap = {};
+    (allCodes || []).forEach(c => { const n = c.author_nickname; if (!n) return; if (!sMap[n]) sMap[n] = { name: n, avatar: c.author_avatar, count: 0, apply: 0 }; sMap[n].count++; sMap[n].apply += (c.apply_num || 0); });
+    return {
+      hotCodes: codes || [], passwords: pwData || [], topMfg: mfgData || [],
+      topStreamers: Object.values(sMap).sort((a, b) => b.apply - a.apply).slice(0, 8),
+      stats: { codes: (allCodes || []).length, streamers: Object.keys(sMap).length, guns: gunCount || 0, variants: variantCount || 0 },
+    };
   }, []);
+  const [data, loading] = useCachedData('landing', fetchAll);
+  const { stats, hotCodes, topStreamers, passwords, topMfg } = data || EMPTY;
 
   function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function formatNum(n) { if (!n) return '0'; if (n >= 10000) return (n / 10000).toFixed(1) + 'w'; if (n >= 1000) return (n / 1000).toFixed(1) + 'k'; return String(n); }
@@ -47,7 +44,7 @@ function Landing() {
       <SEO path="/" description={t('有力气的改枪网站 - 三角洲行动(Delta Force)最全工具站：官方热门改枪码、主播同款改枪码、玩家社区分享、每日密码查询、特勤处制造利润计算、物品价格走势图、卡战备推荐系统。')} />
       {/* Hero */}
       <div style={{ textAlign: 'center', padding: '40px 20px 30px', background: 'linear-gradient(180deg, rgba(32,232,112,0.06) 0%, transparent 100%)', borderRadius: 16, marginBottom: 28 }}>
-        <img src="/logo.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 12 }} onError={e => e.target.style.display = 'none'} />
+        <img src="/logo-144.jpg" alt="" width="72" height="72" style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 12 }} onError={e => e.target.style.display = 'none'} />
         <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 28, fontWeight: 900, background: 'linear-gradient(135deg, #20e870, #18a0d0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8 }}>{t('有力气的改枪网站')}</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>{t('改枪码 · 每日密码 · 制造利润 · 价格走势 · 卡战备')}</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>

@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
+import { useCachedData } from '../dataCache';
+import { fetchAllRows } from '../supabaseFetch';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 
@@ -74,26 +76,17 @@ function GradeBadge({ grade }) {
 
 function Manufacturing() {
   const { t } = useT();
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState('all');
   const [sortBy, setSortBy] = useState('profit');
-  const [lastUpdate, setLastUpdate] = useState('');
 
-  useEffect(() => { fetchItems(); }, []);
-
-  async function fetchItems() {
-    setLoading(true);
-    const { data } = await supabase
-      .from('manufacturing_items')
-      .select('*')
-      .order('profit', { ascending: false });
-    if (data && data.length > 0) {
-      setItems(data);
-      setLastUpdate(data[0].updated_at);
-    }
-    setLoading(false);
-  }
+  const fetchItems = useCallback(() => fetchAllRows(() => supabase
+    .from('manufacturing_items')
+    .select('*')
+    .order('profit', { ascending: false })
+    .order('id')), []);
+  const [data, loading] = useCachedData('manufacturing', fetchItems);
+  const items = data || [];
+  const lastUpdate = items.length > 0 ? items[0].updated_at : '';
 
   const topByPlace = useMemo(() => {
     const result = {};
