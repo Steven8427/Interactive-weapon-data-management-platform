@@ -3,6 +3,14 @@ import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
 import { secureWrite, logoutSession, SESSION_EXPIRED_EVENT } from '../secureDb';
+import { parseCodeLines, tokenOf } from '../codeImport';
+
+const BULK_STATUS = {
+  ok: { label: '可导入', color: '#20e870' },
+  duplicate: { label: '重复', color: '#e0a030' },
+  unknown_weapon: { label: '未识别枪械', color: '#e06040' },
+  invalid: { label: '无改枪码', color: '#e04848' },
+};
 
 const PW_MAPS = [
   { id: 1, name: '零号大坝', icon: '🏗️', color: '#20e870' },
@@ -42,6 +50,10 @@ function Admin({ isAdmin, setIsAdmin }) {
   const [qqSaving, setQqSaving] = useState(false);
   const [customStreamer, setCustomStreamer] = useState({ name: '', arms_name: '', arms_category: '突击步枪', arms_pic: '', solution_code: '', price: '', author_comment: '' });
   const [customStreamerAvatar, setCustomStreamerAvatar] = useState(null);
+  // 批量导入改枪码
+  const [bulkText, setBulkText] = useState('');
+  const [bulkRows, setBulkRows] = useState([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [selectedStreamerName, setSelectedStreamerName] = useState('');
   const [newStreamerForm, setNewStreamerForm] = useState({ nickname: '', avatar: null });
   const [streamerCodeSearch, setStreamerCodeSearch] = useState('');
@@ -474,6 +486,56 @@ function Admin({ isAdmin, setIsAdmin }) {
     toast.success('改枪码已添加！');
     setCustomStreamer({ name: '', arms_name: '', arms_category: '突击步枪', arms_pic: '', solution_code: '', price: '', author_comment: '' });
     setCustomStreamerAvatar(null); setStreamerCodeSearch('');
+    fetchOfficialCodes();
+  }
+
+  // 批量导入：粘贴多行改枪码 → 识别枪械/备注/价格 → 预览 → 一键导入给选中主播
+  async function parseBulk() {
+    if (!bulkText.trim()) { toast.error('请先粘贴改枪码'); return; }
+    setBulkBusy(true);
+    const { data: cat } = await supabase.from('gun_catalog').select('object_name, pic').eq('primary_class', 'gun');
+    // already-synced official codes also know weapon pictures (e.g. new guns missing from the catalog)
+    const fromCodes = officialCodes.filter(c => c.arms_name && c.arms_pic).map(c => ({ object_name: c.arms_name, pic: c.arms_pic }));
+    const existing = new Set(officialCodes.map(c => tokenOf(c.solution_code)));
+    const rows = parseCodeLines(bulkText, [...(cat || []), ...fromCodes], existing);
+    setBulkRows(rows);
+    setBulkBusy(false);
+    const ok = rows.filter(r => r.status === 'ok').length;
+    toast.success(`识别 ${rows.length} 行，可导入 ${ok} 条`);
+  }
+  function updateBulkRow(i, patch) { setBulkRows(rows => rows.map((r, j) => (j === i ? { ...r, ...patch } : r))); }
+  function removeBulkRow(i) { setBulkRows(rows => rows.filter((_, j) => j !== i)); }
+
+  async function importBulk() {
+    if (!selectedStreamerName) { toast.error('请先选择主播'); return; }
+    const todo = bulkRows.filter(r => r.status === 'ok');
+    if (!todo.length) { toast.error('没有可导入的改枪码'); return; }
+    if (!window.confirm(`给「${selectedStreamerName}」导入 ${todo.length} 条改枪码？`)) return;
+    setBulkBusy(true);
+    const streamer = streamersData.find(s => s.name === selectedStreamerName);
+    const maxSort = officialCodes.reduce((m, c) => Math.max(m, c.sort_order || 0), 0);
+    const maxId = officialCodes.reduce((m, c) => (c.id >= 900000000 ? Math.max(m, c.id) : m), 900000000);
+    const now = new Date().toISOString();
+    const values = todo.map((r, i) => ({
+      id: maxId + 1 + i,
+      name: (r.name || '').trim() || r.model || r.token,
+      author_nickname: selectedStreamerName,
+      author_avatar: streamer?.avatar_url || null,
+      arms_name: r.arms_name,
+      arms_pic: r.arms_pic,
+      arms_category: r.arms_category || null,
+      solution_code: r.solution_code,
+      price: r.price || 0,
+      author_comment: r.note || null,
+      source: 'custom',
+      sort_order: maxSort + 1 + i,
+      synced_at: now,
+    }));
+    const { data, error } = await sw('official_gun_codes', 'insert', { values });
+    setBulkBusy(false);
+    if (error) { toast.error('导入失败：' + error.message); return; }
+    toast.success(`已导入 ${data.length} 条改枪码！`);
+    setBulkText(''); setBulkRows([]);
     fetchOfficialCodes();
   }
 
@@ -1051,6 +1113,39 @@ function Admin({ isAdmin, setIsAdmin }) {
 
         {/* 选中主播后：添加改枪码 + 管理列表 */}
         {selectedStreamerName&&(<>
+          <div className="admin-section">
+            <h3>📥 批量导入改枪码给「{selectedStreamerName}」</h3>
+            <p style={{fontSize:12,color:'var(--text-muted)',margin:'0 0 8px'}}>每行一个改枪码，直接粘贴即可。括号或后面的文字会当作方案备注，写「65w」会识别为价格；已存在的码会自动跳过。识别后可以改方案名再导入。</p>
+            <textarea value={bulkText} onChange={e=>setBulkText(e.target.value)} rows={7}
+              placeholder={'M7战斗步枪-烽火地带-6J175A40A5Q0H281F3DG6(满改)\nK437突击步枪-烽火地带-6LDAACO09NQFMIL0O8SAF（37镜）\nMK4腰射双修版-6L9UC9S07FI7MVPVB9B3H'}
+              style={{width:'100%',padding:10,background:'var(--bg-primary)',color:'var(--text-primary)',border:'1px solid var(--border)',borderRadius:8,fontFamily:'monospace',fontSize:12,resize:'vertical',marginBottom:10}}/>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+              <button className="btn btn-primary" onClick={parseBulk} disabled={bulkBusy}>🔍 识别</button>
+              {bulkRows.length>0&&<button className="btn btn-success" onClick={importBulk} disabled={bulkBusy||!bulkRows.some(r=>r.status==='ok')}>⬆️ 导入 {bulkRows.filter(r=>r.status==='ok').length} 条</button>}
+              {bulkRows.length>0&&<button className="btn btn-small" onClick={()=>setBulkRows([])} style={{color:'var(--text-muted)'}}>清空预览</button>}
+            </div>
+            {bulkRows.length>0&&(
+              <div className="table-scroll" style={{marginTop:12}}>
+                <table className="variants-table" style={{minWidth:'auto'}}>
+                  <thead><tr><th style={{width:36}}>#</th><th style={{width:50}}></th><th>方案名</th><th style={{width:80}}>分类</th><th style={{width:70}}>价格</th><th>改枪码</th><th style={{width:90}}>状态</th><th style={{width:40}}></th></tr></thead>
+                  <tbody>
+                    {bulkRows.map((r,i)=>{const st=BULK_STATUS[r.status]||BULK_STATUS.invalid;return(
+                      <tr key={i} style={{opacity:r.status==='ok'?1:0.55}}>
+                        <td style={{color:'var(--text-muted)'}}>{i+1}</td>
+                        <td>{r.arms_pic?<img src={r.arms_pic} alt="" style={{width:40,height:30,objectFit:'contain'}}/>:null}</td>
+                        <td>{r.status==='invalid'?<span style={{fontSize:12,color:'var(--text-muted)'}}>{r.raw}</span>:<input value={r.name||''} onChange={e=>updateBulkRow(i,{name:e.target.value})} style={{width:'100%',padding:4,background:'var(--bg-primary)',color:'var(--text-primary)',border:'1px solid var(--border)',borderRadius:4,fontSize:12}}/>}</td>
+                        <td style={{fontSize:12}}>{r.arms_category||''}</td>
+                        <td style={{fontSize:12}}>{r.price?(r.price/10000)+'w':''}</td>
+                        <td className="code-cell" style={{fontSize:11}}>{r.solution_code||''}</td>
+                        <td><span title={r.reason||''} style={{fontSize:11,fontWeight:700,color:st.color}}>{st.label}</span>{r.reason&&r.status!=='ok'&&<div style={{fontSize:10,color:'var(--text-muted)'}}>{r.reason}</div>}</td>
+                        <td><button className="btn btn-small" onClick={()=>removeBulkRow(i)} style={{color:'var(--text-muted)'}} title="移除">✕</button></td>
+                      </tr>);})}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           <div className="admin-section">
             <h3>➕ 给「{selectedStreamerName}」添加改枪码</h3>
             <div className="form-row">
