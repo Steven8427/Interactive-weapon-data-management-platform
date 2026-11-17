@@ -122,9 +122,10 @@ function GunLanding() {
 
   // ---- index: /gun ----
   if (!slug) {
+    // Full-height column so the pager sits at the bottom of the page no matter
+    // how many weapons the current page/category shows. The pager is pushed
+    // down with margin-top:auto and is sticky to the screen bottom when scrolling.
     return (
-      // full-height column so the pager sits at the bottom of the page no matter
-      // how many weapons the current page/category shows
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 130px)' }}>
         <SEO title={t('武器改枪码大全')} path="/gun" description={t('三角洲行动各热门武器的改枪码大全，按武器查询官方与主播同款改枪码，一键复制。')} />
         <h1 className="page-title">🔫 {t('武器改枪码大全')}</h1>
@@ -172,8 +173,6 @@ function GunLanding() {
             })}
           </div>
           {pageCount > 1 && (
-            // pinned: pushed to the bottom of the column (marginTop auto) and sticky
-            // to the bottom of the screen while scrolling a long page
             <div style={{ position: 'sticky', bottom: 0, zIndex: 5, marginTop: 'auto', paddingTop: 20, display: 'flex', justifyContent: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, flexWrap: 'wrap', width: '100%', padding: '10px 0 12px', background: 'var(--bg-primary)', borderTop: '1px solid var(--border)' }}>
               <button className="filter-chip" disabled={curPage <= 1} onClick={() => goPage(curPage - 1)} style={{ opacity: curPage <= 1 ? 0.4 : 1 }}>‹ {t('上一页')}</button>

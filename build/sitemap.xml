@@ -1,14 +1,909 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://guns.yufantechs.com/</loc><lastmod>2026-03-17</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://guns.yufantechs.com/streamers</loc><lastmod>2026-03-17</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://guns.yufantechs.com/official</loc><lastmod>2026-03-17</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://guns.yufantechs.com/community</loc><lastmod>2026-03-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://guns.yufantechs.com/daily</loc><lastmod>2026-03-17</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://guns.yufantechs.com/profit</loc><lastmod>2026-03-17</lastmod><changefreq>hourly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://guns.yufantechs.com/prices</loc><lastmod>2026-03-17</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://guns.yufantechs.com/items</loc><lastmod>2026-03-17</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://guns.yufantechs.com/cards</loc><lastmod>2026-03-17</lastmod><changefreq>hourly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://guns.yufantechs.com/map</loc><lastmod>2026-03-17</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://guns.yufantechs.com/legal</loc><lastmod>2026-03-17</lastmod><changefreq>monthly</changefreq><priority>0.3</priority></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://guns.yufantechs.com/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/streamers</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/streamers"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/streamers"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/streamers"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/streamers"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/streamers</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/streamers"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/streamers"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/streamers"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/streamers"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/streamers</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/streamers"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/streamers"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/streamers"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/streamers"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/streamers</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/streamers"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/streamers"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/streamers"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/streamers"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/streamers</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/streamers"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/streamers"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/streamers"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/streamers"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/streamers"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/official</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/official"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/official"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/official"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/official"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/official"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/official"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/official</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/official"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/official"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/official"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/official"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/official"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/official"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/official</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/official"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/official"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/official"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/official"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/official"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/official"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/official</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/official"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/official"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/official"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/official"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/official"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/official"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/official</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/official"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/official"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/official"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/official"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/official"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/official"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/community</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/community"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/community"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/community"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/community"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/community"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/community"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/community</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/community"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/community"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/community"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/community"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/community"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/community"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/community</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/community"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/community"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/community"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/community"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/community"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/community"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/community</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/community"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/community"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/community"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/community"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/community"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/community"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/community</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/community"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/community"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/community"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/community"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/community"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/community"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/daily</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/daily"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/daily"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/daily"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/daily"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/daily"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/daily"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/daily</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/daily"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/daily"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/daily"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/daily"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/daily"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/daily"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/daily</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/daily"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/daily"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/daily"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/daily"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/daily"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/daily"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/daily</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/daily"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/daily"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/daily"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/daily"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/daily"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/daily"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/daily</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/daily"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/daily"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/daily"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/daily"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/daily"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/daily"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/profit</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/profit"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/profit"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/profit"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/profit"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/profit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/profit"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/profit</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/profit"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/profit"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/profit"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/profit"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/profit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/profit"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/profit</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/profit"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/profit"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/profit"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/profit"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/profit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/profit"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/profit</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/profit"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/profit"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/profit"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/profit"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/profit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/profit"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/profit</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/profit"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/profit"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/profit"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/profit"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/profit"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/profit"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/prices</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/prices"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/prices"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/prices"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/prices"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/prices"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/prices"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/prices</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/prices"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/prices"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/prices"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/prices"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/prices"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/prices"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/prices</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/prices"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/prices"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/prices"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/prices"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/prices"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/prices"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/prices</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/prices"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/prices"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/prices"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/prices"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/prices"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/prices"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/prices</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/prices"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/prices"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/prices"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/prices"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/prices"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/prices"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/items</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/items"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/items"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/items"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/items"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/items"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/items"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/items</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/items"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/items"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/items"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/items"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/items"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/items"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/items</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/items"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/items"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/items"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/items"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/items"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/items"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/items</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/items"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/items"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/items"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/items"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/items"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/items"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/items</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/items"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/items"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/items"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/items"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/items"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/items"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/cards</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/cards"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/cards"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/cards"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/cards"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/cards"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/cards"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/cards</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/cards"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/cards"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/cards"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/cards"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/cards"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/cards"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/cards</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/cards"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/cards"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/cards"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/cards"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/cards"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/cards"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/cards</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/cards"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/cards"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/cards"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/cards"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/cards"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/cards"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/cards</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/cards"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/cards"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/cards"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/cards"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/cards"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/cards"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/map</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/map"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/map"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/map"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/map"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/map"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/map"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/map</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/map"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/map"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/map"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/map"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/map"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/map"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/map</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/map"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/map"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/map"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/map"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/map"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/map"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/map</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/map"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/map"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/map"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/map"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/map"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/map"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/map</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/map"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/map"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/map"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/map"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/map"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/map"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/legal</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/legal"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/legal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/legal"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/legal"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/legal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/legal"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/zh-tw/legal</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/legal"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/legal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/legal"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/legal"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/legal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/legal"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/en/legal</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/legal"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/legal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/legal"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/legal"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/legal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/legal"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ja/legal</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/legal"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/legal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/legal"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/legal"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/legal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/legal"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/ko/legal</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://guns.yufantechs.com/legal"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://guns.yufantechs.com/zh-tw/legal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guns.yufantechs.com/en/legal"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://guns.yufantechs.com/ja/legal"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://guns.yufantechs.com/ko/legal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guns.yufantechs.com/legal"/>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/an94</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/mk4</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/sr-25</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/m250</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/k437</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/pkm</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/m14</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/m7</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/93r</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/mdr</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/sks</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/rm277</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/as-val</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/qjb201</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/mcx-lt</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/ash-12</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/sr-3m</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/mp7</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/scarh</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/svch</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/psg-1</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/sr9</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/svd</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/sg552</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/g18</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/smg-45</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/p90</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/qcq171</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/mp5</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/g17</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/m82</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/fs-12</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/m1911</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/ptr-32</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/mini-14</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/s12k</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/qsz92g</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/vss</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/vector</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://guns.yufantechs.com/gun/sv-98</loc>
+    <lastmod>2026-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>
