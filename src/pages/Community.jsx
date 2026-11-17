@@ -3,6 +3,13 @@ import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { getCached, setCache } from '../dataCache';
 import { secureWrite, logoutSession, SESSION_EXPIRED_EVENT } from '../secureDb';
+import { parseBuildTable, tokenOf, nameKey } from '../codeImport';
+
+const BULK_STATUS = {
+  ok: { label: '可导入', color: '#20e870' },
+  duplicate: { label: '重复', color: '#e0a030' },
+  unknown_weapon: { label: '缺枪名', color: '#e06040' },
+};
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
@@ -47,9 +54,10 @@ function Community() {
   // Management (own profile)
   const [selectedGunId, setSelectedGunId] = useState('');
   const [variantForm, setVariantForm] = useState({ version: '', price: '', mod_type: '', code: '', effective_range: '' });
-  // Smart quick-add: paste code (gun name auto-detected) -> one-click add
-  const [quick, setQuick] = useState({ code: '', name: '', version: '', price: '', mod_type: '' });
-  const [quickBusy, setQuickBusy] = useState(false);
+  // Bulk add: paste codes / a spreadsheet -> preview -> import
+  const [bulkText, setBulkText] = useState('');
+  const [bulkRows, setBulkRows] = useState([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [editingVariant, setEditingVariant] = useState(null);
   const [gunSearch, setGunSearch] = useState('');
   const [catalogResults, setCatalogResults] = useState([]);
@@ -238,12 +246,6 @@ function Community() {
     return { name: name.trim(), cat };
   }
 
-  // Extract the weapon name embedded in a build code ("<name>-烽火地带-<token>").
-  function detectGunName(code) {
-    const m = (code || '').trim().match(/^(.+?)-(?:烽火地带|烽火|全面战场|大战场)-/);
-    return m ? m[1].trim() : '';
-  }
-
   // Add gun from catalog - optimistic local update
   async function addGunFromCatalog(item) {
     if (!player) return;
@@ -258,45 +260,74 @@ function Community() {
     setShowCatalog(false); setGunSearch('');
   }
 
-  // Smart quick-add: parse code -> match catalog -> create gun (if new) + variant, in one step.
-  async function quickAdd() {
+  // Bulk add: paste codes (plain lines or a spreadsheet with 枪名/段位/价格/类型/改枪码)
+  // -> preview -> one click creates missing guns and adds all codes (pending review).
+  // Codes are stored exactly as pasted; the catalog only supplies name/category/picture.
+  async function parseBulk() {
+    if (!bulkText.trim()) { toast.error(t('请先粘贴改枪码')); return; }
+    setBulkBusy(true);
+    const { data: cat } = await supabase.from('gun_catalog').select('object_name, pic').eq('primary_class', 'gun');
+    const own = new Set(guns.flatMap(g => g.variants.map(v => tokenOf(v.code))));
+    const rows = parseBuildTable(bulkText, cat || [], own);
+    setBulkRows(rows);
+    setBulkBusy(false);
+    toast.success(t('识别 {n} 行，可导入 {m} 条', { n: rows.length, m: rows.filter(r => r.status === 'ok').length }));
+  }
+  function updateBulkRow(i, patch) {
+    setBulkRows(rows => rows.map((r, j) => {
+      if (j !== i) return r;
+      const next = { ...r, ...patch };
+      if (next.status === 'unknown_weapon' && (next.gunName || '').trim()) { next.status = 'ok'; next.reason = ''; }
+      return next;
+    }));
+  }
+  function removeBulkRow(i) { setBulkRows(rows => rows.filter((_, j) => j !== i)); }
+
+  async function importBulk() {
     if (!player) return;
-    const code = quick.code.trim();
-    if (!code) { toast.error(t('请填写改枪码')); return; }
-    const typedName = quick.name.trim();
-    const gunNameInput = typedName || detectGunName(code);
-    if (!gunNameInput) { toast.error(t('请填写枪名，或粘贴带枪名的完整改枪码')); return; }
-    setQuickBusy(true);
+    const todo = bulkRows.filter(r => r.status === 'ok' && (r.gunName || '').trim());
+    if (!todo.length) { toast.error(t('没有可导入的改枪码')); return; }
+    setBulkBusy(true);
     try {
-      // match the official catalog to get the specific category + image
-      const { data: hits } = await supabase.from('gun_catalog').select('object_name, second_class, pic')
-        .eq('primary_class', 'gun').ilike('object_name', `%${gunNameInput}%`).limit(1);
-      const item = hits && hits[0];
-      let name, cat, image;
-      if (item) { const d = deriveNameCat(item.object_name, item.second_class); name = d.name; cat = d.cat; image = item.pic || ''; }
-      else { const d = deriveNameCat(gunNameInput, null); name = d.name; cat = d.cat; image = ''; }
-      // find or create the gun
-      let gun = guns.find(g => g.name === name);
-      if (!gun) {
-        const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
-        const { data: gRows, error: gErr } = await sw('guns', 'insert', { values: { name, category: cat, image_url: image, player_id: player.id, sort_order: mx + 1 } });
-        const newGun = gRows[0];
-        if (gErr || !newGun) { toast.error(t('添加失败')); setQuickBusy(false); return; }
-        gun = { ...newGun, variants: [] };
-        setGuns(prev => [...prev, gun]);
+      const byKey = {};
+      guns.forEach(g => { byKey[nameKey(g.name)] = g; });
+      let maxGunSort = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
+      const newGuns = [];
+      // 1) create guns that don't exist yet (one per distinct name)
+      for (const r of todo) {
+        const key = nameKey(r.gunName);
+        if (byKey[key]) continue;
+        const { data: gRows, error } = await sw('guns', 'insert', { values: {
+          name: r.gunName.trim(), category: r.category || '突击步枪', image_url: r.pic || '', player_id: player.id, sort_order: ++maxGunSort,
+        } });
+        if (error || !gRows[0]) throw error || new Error('gun');
+        byKey[key] = { ...gRows[0], variants: [] };
+        newGuns.push(byKey[key]);
       }
-      // add the variant (pending review)
-      const mv = gun.variants.reduce((m, v) => Math.max(m, v.sort_order || 0), 0);
-      const { data: vRows, error: vErr } = await sw('gun_variants', 'insert', { values: {
-        gun_id: gun.id, code, version: quick.version.trim(), price: quick.price.trim(), mod_type: quick.mod_type.trim(), effective_range: '', sort_order: mv + 1, status: 'pending',
-      } });
-      const newV = vRows[0];
-      if (vErr || !newV) { toast.error(t('添加失败')); setQuickBusy(false); return; }
-      setGuns(prev => prev.map(g => g.id === gun.id ? { ...g, variants: [...g.variants, newV] } : g));
-      toast.success(t('已识别为「{name}」，已提交审核', { name }));
-      setQuick({ code: '', name: '', version: '', price: '', mod_type: '' });
-    } catch (e) { toast.error(t('添加失败')); }
-    setQuickBusy(false);
+      // 2) add codes per gun, appended after that gun's existing codes
+      const perGun = {};
+      todo.forEach(r => { const g = byKey[nameKey(r.gunName)]; (perGun[g.id] = perGun[g.id] || []).push(r); });
+      const added = {};
+      for (const [gid, list] of Object.entries(perGun)) {
+        const g = Object.values(byKey).find(x => x.id === gid);
+        const base = (g.variants || []).reduce((m, v) => Math.max(m, v.sort_order || 0), 0);
+        const values = list.map((r, i) => ({
+          gun_id: gid, code: r.code, version: (r.version || '').trim(), price: (r.price || '').trim(),
+          mod_type: (r.mod_type || '').trim(), effective_range: '', sort_order: base + 1 + i, status: 'pending',
+        }));
+        const { data: vRows, error } = await sw('gun_variants', 'insert', { values });
+        if (error) throw error;
+        added[gid] = vRows;
+      }
+      setGuns(prev => [...prev, ...newGuns].map(g => (added[g.id] ? { ...g, variants: [...(g.variants || []), ...added[g.id]] } : g)));
+      const n = Object.values(added).reduce((s, l) => s + l.length, 0);
+      toast.success(t('已导入 {n} 条改枪码，等待管理员审核', { n }));
+      setBulkText(''); setBulkRows([]);
+    } catch (e) {
+      toast.error(t('导入失败'));
+      fetchPlayerGuns(player.id);
+    }
+    setBulkBusy(false);
   }
 
   // Delete gun - optimistic local update
@@ -423,27 +454,45 @@ function Community() {
           <div className="admin-section" style={{ marginBottom: 16 }}>
             <h3>✏️ {t('添加枪械与改枪码')}</h3>
 
-            {/* 智能添加：粘贴改枪码，自动识别枪名 */}
+            {/* 批量添加：粘贴改枪码或整张表格，自动识别枪械并分组 */}
             <div style={{ marginBottom: 16, padding: 14, borderRadius: 10, background: 'rgba(32,232,112,0.05)', border: '1px solid rgba(32,232,112,0.25)' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>🤖 {t('智能添加改枪码')}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>{t('粘贴改枪码，自动识别枪名并加入')}</div>
-              <div className="form-group" style={{ marginBottom: 8 }}>
-                <textarea rows={2} value={quick.code} onChange={e => setQuick({ ...quick, code: e.target.value })}
-                  placeholder={t('在此粘贴改枪码（含枪名的完整码可自动识别）')}
-                  style={{ width: '100%', fontFamily: 'monospace', resize: 'vertical' }} />
-                {quick.code.trim() && !quick.name.trim() && detectGunName(quick.code) && (
-                  <div style={{ fontSize: 12, color: '#20e870', marginTop: 4 }}>✓ {t('已识别：{name}', { name: detectGunName(quick.code) })}</div>
-                )}
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>📥 {t('批量添加改枪码')}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>{t('每行一个改枪码；也可以直接粘贴表格（枪名、段位、价格、类型、改枪码），自动识别枪械并分组。改枪码按原样保存。')}</div>
+              <textarea rows={6} value={bulkText} onChange={e => setBulkText(e.target.value)}
+                placeholder={'M7战斗步枪-烽火地带-6J175A40A5Q0H281F3DG6(满改)\nK416突击步枪-烽火地带-6JNVN3S03EINQ63AGU05N T0 40w 半改\nAR57\tT1\t65W\t满改\tAR57突击步枪-烽火地带-6L6FVH000B5F1EC0CC9I8'}
+                style={{ width: '100%', fontFamily: 'monospace', fontSize: 12, resize: 'vertical', marginBottom: 10 }} />
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <button className="btn btn-primary" onClick={parseBulk} disabled={bulkBusy}>🔍 {t('识别')}</button>
+                {bulkRows.length > 0 && <button className="btn btn-success" onClick={importBulk} disabled={bulkBusy || !bulkRows.some(r => r.status === 'ok')}>⬆️ {t('导入 {n} 条', { n: bulkRows.filter(r => r.status === 'ok').length })}</button>}
+                {bulkRows.length > 0 && <button className="btn btn-small" onClick={() => setBulkRows([])} style={{ color: 'var(--text-muted)' }}>{t('清空预览')}</button>}
               </div>
-              <div className="form-row">
-                <div className="form-group" style={{ flex: 2 }}><label>{t('枪名')}</label><input type="text" value={quick.name} onChange={e => setQuick({ ...quick, name: e.target.value })} placeholder={t('自动识别，可修改')} /></div>
-                <div className="form-group"><label>{t('段位')} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('选填')})</span></label><select value={quick.version} onChange={e => setQuick({ ...quick, version: e.target.value })}><option value="">{t('不选')}</option>{['T0','T1','T2','T3','T4','狙击','连狙','手枪','弓弩'].map(v => <option key={v}>{v}</option>)}</select></div>
-                <div className="form-group"><label>{t('价格')} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('选填')})</span></label><input type="text" value={quick.price} onChange={e => setQuick({ ...quick, price: e.target.value })} placeholder="85w" /></div>
-                <div className="form-group"><label>{t('类型')} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('选填')})</span></label><input type="text" value={quick.mod_type} onChange={e => setQuick({ ...quick, mod_type: e.target.value })} placeholder={t('满改')} /></div>
-              </div>
-              <button className="btn btn-primary" onClick={quickAdd} disabled={quickBusy} style={{ width: '100%', justifyContent: 'center' }}>
-                {quickBusy ? t('识别中...') : `🤖 ${t('智能添加')}`}
-              </button>
+              {bulkRows.length > 0 && (
+                <div className="table-scroll" style={{ marginTop: 12 }}>
+                  <table className="variants-table" style={{ minWidth: 'auto' }}>
+                    <thead><tr>
+                      <th style={{ width: 32 }}>#</th><th style={{ width: 46 }}></th>
+                      <th style={{ width: 110 }}>{t('枪名')}</th><th style={{ width: 64 }}>{t('段位')}</th><th style={{ width: 64 }}>{t('价格')}</th><th style={{ width: 110 }}>{t('类型')}</th>
+                      <th>{t('改枪码')}</th><th style={{ width: 80 }}></th><th style={{ width: 36 }}></th>
+                    </tr></thead>
+                    <tbody>
+                      {bulkRows.map((r, i) => {
+                        const st = BULK_STATUS[r.status] || BULK_STATUS.duplicate;
+                        const inp = (field, w) => <input value={r[field] || ''} onChange={e => updateBulkRow(i, { [field]: e.target.value })} disabled={r.status === 'duplicate'} style={{ width: w, padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11 }} />;
+                        return (
+                          <tr key={i} style={{ opacity: r.status === 'duplicate' ? 0.5 : 1 }}>
+                            <td style={{ color: 'var(--text-muted)' }}>{i + 1}</td>
+                            <td>{r.pic ? <img src={r.pic} alt="" style={{ width: 40, height: 28, objectFit: 'contain' }} /> : null}</td>
+                            <td>{inp('gunName', 100)}</td><td>{inp('version', 54)}</td><td>{inp('price', 54)}</td><td>{inp('mod_type', 100)}</td>
+                            <td className="code-cell" style={{ fontSize: 10 }}>{r.code}</td>
+                            <td><span style={{ fontSize: 11, fontWeight: 700, color: st.color }}>{t(st.label)}</span>{r.reason && r.status !== 'ok' && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t(r.reason)}</div>}</td>
+                            <td><button className="btn btn-small" onClick={() => removeBulkRow(i)} title={t('移除')} style={{ color: 'var(--text-muted)' }}>✕</button></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', margin: '4px 0 12px' }}>{t('— 或手动添加 —')}</div>
