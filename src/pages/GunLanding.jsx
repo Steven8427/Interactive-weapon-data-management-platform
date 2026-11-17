@@ -123,7 +123,9 @@ function GunLanding() {
   // ---- index: /gun ----
   if (!slug) {
     return (
-      <div>
+      // full-height column so the pager sits at the bottom of the page no matter
+      // how many weapons the current page/category shows
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 130px)' }}>
         <SEO title={t('武器改枪码大全')} path="/gun" description={t('三角洲行动各热门武器的改枪码大全，按武器查询官方与主播同款改枪码，一键复制。')} />
         <h1 className="page-title">🔫 {t('武器改枪码大全')}</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('按武器查询三角洲行动改枪码 · 共 {n} 把武器', { n: weapons.length })}</p>
@@ -170,13 +172,17 @@ function GunLanding() {
             })}
           </div>
           {pageCount > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 20, flexWrap: 'wrap' }}>
+            // pinned: pushed to the bottom of the column (marginTop auto) and sticky
+            // to the bottom of the screen while scrolling a long page
+            <div style={{ position: 'sticky', bottom: 0, zIndex: 5, marginTop: 'auto', paddingTop: 20, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, flexWrap: 'wrap', width: '100%', padding: '10px 0 12px', background: 'var(--bg-primary)', borderTop: '1px solid var(--border)' }}>
               <button className="filter-chip" disabled={curPage <= 1} onClick={() => goPage(curPage - 1)} style={{ opacity: curPage <= 1 ? 0.4 : 1 }}>‹ {t('上一页')}</button>
               {Array.from({ length: pageCount }, (_, i) => i + 1).map(p => (
                 <button key={p} className={`filter-chip ${p === curPage ? 'active' : ''}`} onClick={() => goPage(p)} style={{ minWidth: 36, justifyContent: 'center' }}>{p}</button>
               ))}
               <button className="filter-chip" disabled={curPage >= pageCount} onClick={() => goPage(curPage + 1)} style={{ opacity: curPage >= pageCount ? 0.4 : 1 }}>{t('下一页')} ›</button>
               <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 6 }}>{t('第 {p} / {n} 页', { p: curPage, n: pageCount })}</span>
+            </div>
             </div>
           )}
         </>)}
