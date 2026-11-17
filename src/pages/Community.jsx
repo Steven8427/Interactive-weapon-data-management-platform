@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { getCached, setCache } from '../dataCache';
+import { secureWrite, logoutSession, SESSION_EXPIRED_EVENT } from '../secureDb';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
 import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
@@ -64,7 +65,25 @@ function Community() {
   }, [showCatalog]);
 
   // Load saved login
-  useEffect(() => { const s = localStorage.getItem('df_player'); if (s) try { setPlayer(JSON.parse(s)); } catch {} }, []);
+  // Saved logins from before server sessions have no token: drop them so the
+  // player logs in again and gets one.
+  useEffect(() => {
+    const s = localStorage.getItem('df_player');
+    if (!s) return;
+    try { const p = JSON.parse(s); if (p?.session_token) setPlayer(p); else localStorage.removeItem('df_player'); }
+    catch { localStorage.removeItem('df_player'); }
+  }, []);
+  useEffect(() => {
+    const onExpired = (e) => {
+      if (e.detail !== 'player') return;
+      setPlayer(null); localStorage.removeItem('df_player');
+      toast.error(t('登录已过期，请重新登录'));
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, [t]);
+  // Verified write (server checks the player session token + ownership).
+  const sw = (table, op, opts) => secureWrite('player', player?.session_token, table, op, opts);
   useEffect(() => { supabase.from('banned_words').select('word').then(({ data }) => { if (data) setBannedWords(data.map(d => d.word.toLowerCase())); }); }, []);
 
   // Content filter: banned words + patterns (phone/email/URL)
@@ -153,7 +172,7 @@ function Community() {
       setPlayer(rec); localStorage.setItem('df_player', JSON.stringify(rec)); toast.success(t('欢迎，{name}！', { name: rec.nickname || rec.username })); setShowAuthModal(false); setAuthForm({ username: '', password: '', confirmPassword: '', nickname: '' }); setShowPw(false);
     }
   }
-  function logout() { setPlayer(null); localStorage.removeItem('df_player'); toast.success(t('已退出')); }
+  function logout() { logoutSession(player?.session_token); setPlayer(null); localStorage.removeItem('df_player'); toast.success(t('已退出')); }
 
   function openProfile() {
     if (!player) return;
@@ -192,7 +211,7 @@ function Community() {
       pending_avatar_url: avatarUrl,
       profile_status: 'pending',
     };
-    const { error } = await supabase.from('players').update(updates).eq('id', player.id);
+    const { error } = await sw('players', 'update', { values: updates, match: { id: player.id } });
     if (error) { toast.error(t('提交失败')); setProfileSaving(false); return; }
     toast.success(t('资料已提交，等待管理员审核')); setShowProfile(false); setProfileSaving(false);
   }
@@ -232,8 +251,9 @@ function Community() {
     const existing = guns.find(g => g.name === name);
     if (existing) { toast.error(t('已有此枪械')); setShowCatalog(false); setGunSearch(''); return; }
     const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
-    const { data: newGun } = await supabase.from('guns').insert({ name, category: cat, image_url: item.pic || '', player_id: player.id, sort_order: mx + 1 }).select().single();
-    if (newGun) setGuns(prev => [...prev, { ...newGun, variants: [] }]);
+    const { data: rows, error } = await sw('guns', 'insert', { values: { name, category: cat, image_url: item.pic || '', player_id: player.id, sort_order: mx + 1 } });
+    if (error || !rows[0]) { toast.error(t('添加失败')); return; }
+    setGuns(prev => [...prev, { ...rows[0], variants: [] }]);
     toast.success(t('{name} 已添加！', { name }));
     setShowCatalog(false); setGunSearch('');
   }
@@ -259,16 +279,18 @@ function Community() {
       let gun = guns.find(g => g.name === name);
       if (!gun) {
         const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
-        const { data: newGun, error: gErr } = await supabase.from('guns').insert({ name, category: cat, image_url: image, player_id: player.id, sort_order: mx + 1 }).select().single();
+        const { data: gRows, error: gErr } = await sw('guns', 'insert', { values: { name, category: cat, image_url: image, player_id: player.id, sort_order: mx + 1 } });
+        const newGun = gRows[0];
         if (gErr || !newGun) { toast.error(t('添加失败')); setQuickBusy(false); return; }
         gun = { ...newGun, variants: [] };
         setGuns(prev => [...prev, gun]);
       }
       // add the variant (pending review)
       const mv = gun.variants.reduce((m, v) => Math.max(m, v.sort_order || 0), 0);
-      const { data: newV, error: vErr } = await supabase.from('gun_variants').insert({
+      const { data: vRows, error: vErr } = await sw('gun_variants', 'insert', { values: {
         gun_id: gun.id, code, version: quick.version.trim(), price: quick.price.trim(), mod_type: quick.mod_type.trim(), effective_range: '', sort_order: mv + 1, status: 'pending',
-      }).select().single();
+      } });
+      const newV = vRows[0];
       if (vErr || !newV) { toast.error(t('添加失败')); setQuickBusy(false); return; }
       setGuns(prev => prev.map(g => g.id === gun.id ? { ...g, variants: [...g.variants, newV] } : g));
       toast.success(t('已识别为「{name}」，已提交审核', { name }));
@@ -280,8 +302,9 @@ function Community() {
   // Delete gun - optimistic local update
   async function deleteGun(id, name) {
     if (!window.confirm(t('删除 {name}？其下所有改装码也会被删除！', { name }))) return;
-    await supabase.from('gun_variants').delete().eq('gun_id', id);
-    await supabase.from('guns').delete().eq('id', id);
+    // gun_variants cascade when the gun is deleted.
+    const { error } = await sw('guns', 'delete', { match: { id } });
+    if (error) { toast.error(t('删除失败')); return; }
     setGuns(prev => prev.filter(g => g.id !== id));
     if (selectedGunId === id) setSelectedGunId('');
     toast.success(t('已删除'));
@@ -292,15 +315,18 @@ function Community() {
     if (!selectedGunId || !variantForm.code.trim()) { toast.error(t('请填写改枪码')); return; }
     const gun = guns.find(g => g.id === selectedGunId);
     const mx = gun ? gun.variants.reduce((m, v) => Math.max(m, v.sort_order || 0), 0) : 0;
-    const { data: newV } = await supabase.from('gun_variants').insert({ gun_id: selectedGunId, ...variantForm, sort_order: mx + 1, status: 'pending' }).select().single();
-    if (newV) setGuns(prev => prev.map(g => g.id === selectedGunId ? { ...g, variants: [...g.variants, newV] } : g));
+    const { data: rows, error } = await sw('gun_variants', 'insert', { values: { gun_id: selectedGunId, ...variantForm, sort_order: mx + 1, status: 'pending' } });
+    if (error || !rows[0]) { toast.error(t('添加失败')); return; }
+    const newV = rows[0];
+    setGuns(prev => prev.map(g => g.id === selectedGunId ? { ...g, variants: [...g.variants, newV] } : g));
     toast.success(t('已提交，等待管理员审核')); setVariantForm({ version: '', price: '', mod_type: '', code: '', effective_range: '' });
   }
 
   // Delete variant - optimistic local update
   async function deleteVariant(id) {
     if (!window.confirm(t('确定删除？'))) return;
-    await supabase.from('gun_variants').delete().eq('id', id);
+    const { error } = await sw('gun_variants', 'delete', { match: { id } });
+    if (error) { toast.error(t('删除失败')); return; }
     setGuns(prev => prev.map(g => ({ ...g, variants: g.variants.filter(v => v.id !== id) })));
     toast.success(t('已删除'));
   }
@@ -309,9 +335,12 @@ function Community() {
   async function updateVariant() {
     if (!editingVariant) return;
     const updates = { version: editingVariant.version, price: editingVariant.price, mod_type: editingVariant.mod_type, code: editingVariant.code, effective_range: editingVariant.effective_range };
-    await supabase.from('gun_variants').update(updates).eq('id', editingVariant.id);
-    setGuns(prev => prev.map(g => ({ ...g, variants: g.variants.map(v => v.id === editingVariant.id ? { ...v, ...updates } : v) })));
-    toast.success(t('更新成功！')); setEditingVariant(null);
+    // Server re-queues edited codes for review (status -> pending).
+    const { data: rows, error } = await sw('gun_variants', 'update', { values: updates, match: { id: editingVariant.id } });
+    if (error) { toast.error(t('提交失败')); return; }
+    const saved = rows[0] || { ...updates, status: 'pending' };
+    setGuns(prev => prev.map(g => ({ ...g, variants: g.variants.map(v => v.id === editingVariant.id ? { ...v, ...saved } : v) })));
+    toast.success(t('已提交，等待管理员审核')); setEditingVariant(null);
   }
 
   function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }

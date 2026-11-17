@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { authLockRemaining, recordAuthFail, clearAuthFail, lockMinutes } from '../authRateLimit';
+import { secureWrite, logoutSession, SESSION_EXPIRED_EVENT } from '../secureDb';
 
 const PW_MAPS = [
   { id: 1, name: '零号大坝', icon: '🏗️', color: '#20e870' },
@@ -83,13 +84,32 @@ function Admin({ isAdmin, setIsAdmin }) {
 
   const isSuper = adminInfo?.role === 'super';
 
-  // Restore admin session from localStorage (3 hour expiry)
+  // Verified write (server checks the admin session token + permissions).
+  const sw = (table, op, opts) => secureWrite('admin', adminInfo?.token, table, op, opts);
+
+  function adminLogout() {
+    logoutSession(adminInfo?.token);
+    setIsAdmin(false); setAdminInfo(null); localStorage.removeItem('df_admin');
+  }
+
+  // Server rejected the token (expired / revoked): force a fresh login.
+  useEffect(() => {
+    const onExpired = (e) => {
+      if (e.detail !== 'admin') return;
+      setIsAdmin(false); setAdminInfo(null); localStorage.removeItem('df_admin');
+      toast.error('登录已过期，请重新登录');
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, [setIsAdmin]);
+
+  // Restore admin session from localStorage (3 hour expiry; needs a server token)
   useEffect(() => {
     const saved = localStorage.getItem('df_admin');
     if (saved) {
       try {
         const d = JSON.parse(saved);
-        if (Date.now() - d.loginAt < 3 * 3600000) {
+        if (d.token && Date.now() - d.loginAt < 3 * 3600000) {
           setAdminInfo(d); setIsAdmin(true);
         } else { localStorage.removeItem('df_admin'); }
       } catch { localStorage.removeItem('df_admin'); }
@@ -161,9 +181,10 @@ function Admin({ isAdmin, setIsAdmin }) {
   }, []);
 
   const fetchQqCreds = useCallback(async () => {
-    const { data } = await supabase.from('qq_credentials').select('*').eq('id', 1).single();
+    const { data: rows } = await supabase.rpc('admin_get_qq_credentials', { p_token: adminInfo?.token || '' });
+    const data = Array.isArray(rows) ? rows[0] : rows;
     if (data) { setQqCreds(data); setQqForm({ openid: data.openid || '', access_token: data.access_token || '' }); }
-  }, []);
+  }, [adminInfo]);
 
   useEffect(() => { if (isAdmin) { fetchAll(); fetchPasswords(); if (isSuper) { fetchAdmins(); fetchReviews(); fetchCommunity(); fetchPendingCodes(); fetchOfficialCodes(); fetchStreamers(); fetchPendingProfiles(); fetchBannedWords(); fetchQqCreds(); } } }, [isAdmin, fetchAll, fetchPasswords, fetchAdmins, fetchReviews, fetchCommunity, fetchPendingCodes, fetchOfficialCodes, fetchStreamers, fetchPendingProfiles, fetchBannedWords, fetchQqCreds, isSuper]);
 
@@ -191,7 +212,7 @@ function Admin({ isAdmin, setIsAdmin }) {
     if (!selectedAuthorId) { toast.error('未关联作者'); return; }
     const { name, cat } = extractGunNameAndCat(item.object_name, item.second_class);
     const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
-    const { error } = await supabase.from('guns').insert({ name, category: cat, image_url: item.pic || null, author_id: selectedAuthorId, sort_order: mx + 1 });
+    const { error } = await sw('guns', 'insert', { values: { name, category: cat, image_url: item.pic || null, author_id: selectedAuthorId, sort_order: mx + 1 } });
     if (error) { toast.error('添加失败：' + error.message); return; }
     toast.success(`${name} 添加成功！`);
     setGunSearch(''); setCatalogResults([]); setShowCatalog(false); fetchAll();
@@ -215,7 +236,7 @@ function Admin({ isAdmin, setIsAdmin }) {
     const rec = Array.isArray(data) ? data[0] : data;
     if (error || !rec) { recordAuthFail('admin:' + uname); toast.error('用户名或密码错误'); return; }
     clearAuthFail('admin:' + uname);
-    const info = { id: rec.id, role: rec.role || 'admin', author_id: rec.author_id, display_name: rec.display_name || rec.username, loginAt: Date.now() };
+    const info = { id: rec.id, role: rec.role || 'admin', author_id: rec.author_id, display_name: rec.display_name || rec.username, token: rec.session_token, loginAt: Date.now() };
     setAdminInfo(info); localStorage.setItem('df_admin', JSON.stringify(info));
     setIsAdmin(true); toast.success(`欢迎，${rec.display_name || rec.username}！`);
   }
@@ -234,12 +255,14 @@ function Admin({ isAdmin, setIsAdmin }) {
     setUploadingImage(true); let url = null;
     try { if (newAuthorAvatar) url = await uploadImage(newAuthorAvatar); } catch { toast.error('失败'); setUploadingImage(false); return; }
     const mx = authors.reduce((m, a) => Math.max(m, a.sort_order || 0), 0);
-    await supabase.from('authors').insert({ name: newAuthor.name.trim(), slug: newAuthor.slug.trim().toLowerCase(), description: newAuthor.description, avatar_url: url, sort_order: mx + 1 });
+    const { error } = await sw('authors', 'insert', { values: { name: newAuthor.name.trim(), slug: newAuthor.slug.trim().toLowerCase(), description: newAuthor.description, avatar_url: url, sort_order: mx + 1 } });
+    if (error) { toast.error('添加失败：' + error.message); setUploadingImage(false); return; }
     toast.success('添加成功！'); setNewAuthor({ name: '', slug: '', description: '' }); setNewAuthorAvatar(null); setUploadingImage(false); fetchAll();
   }
-  async function deleteAuthor(id, name) { if (!window.confirm(`删除 ${name}？`)) return; const ag = guns.filter(g => g.author_id === id); for (const g of ag) { await supabase.from('gun_variants').delete().eq('gun_id', g.id); await supabase.from('guns').delete().eq('id', g.id); } await supabase.from('authors').delete().eq('id', id); toast.success('已删除'); fetchAll(); }
-  async function updateAuthorAvatar(id, file) { try { const url = await uploadImage(file); await supabase.from('authors').update({ avatar_url: url }).eq('id', id); toast.success('更新！'); fetchAll(); } catch { toast.error('失败'); } }
-  async function saveAuthorEdit() { if (!editingAuthor?.name?.trim()) return; await supabase.from('authors').update({ name: editingAuthor.name.trim(), slug: editingAuthor.slug.trim().toLowerCase(), description: editingAuthor.description || '' }).eq('id', editingAuthor.id); toast.success('已更新！'); setEditingAuthor(null); fetchAll(); }
+  // guns.author_id and gun_variants.gun_id cascade on delete, so deleting the author removes its guns + codes.
+  async function deleteAuthor(id, name) { if (!window.confirm(`删除 ${name}？`)) return; const { error } = await sw('authors', 'delete', { match: { id } }); if (error) { toast.error('删除失败：' + error.message); return; } toast.success('已删除'); fetchAll(); }
+  async function updateAuthorAvatar(id, file) { try { const url = await uploadImage(file); const { error } = await sw('authors', 'update', { values: { avatar_url: url }, match: { id } }); if (error) throw error; toast.success('更新！'); fetchAll(); } catch { toast.error('失败'); } }
+  async function saveAuthorEdit() { if (!editingAuthor?.name?.trim()) return; const { error } = await sw('authors', 'update', { values: { name: editingAuthor.name.trim(), slug: editingAuthor.slug.trim().toLowerCase(), description: editingAuthor.description || '' }, match: { id: editingAuthor.id } }); if (error) { toast.error('保存失败：' + error.message); return; } toast.success('已更新！'); setEditingAuthor(null); fetchAll(); }
 
   // 枪械
   const authorGuns = guns.filter(g => g.author_id === selectedAuthorId);
@@ -249,37 +272,39 @@ function Admin({ isAdmin, setIsAdmin }) {
     setUploadingImage(true); let imageUrl = superGunImageUrl || null;
     try { if (superGunImage) imageUrl = await uploadImage(superGunImage); } catch { setUploadingImage(false); return; }
     const mx = guns.reduce((m, g) => Math.max(m, g.sort_order || 0), 0);
-    await supabase.from('guns').insert({ name: superGunName.trim(), category: superGunCat, image_url: imageUrl, author_id: selectedAuthorId, sort_order: mx + 1 });
+    const { error } = await sw('guns', 'insert', { values: { name: superGunName.trim(), category: superGunCat, image_url: imageUrl, author_id: selectedAuthorId, sort_order: mx + 1 } });
+    if (error) { toast.error('添加失败：' + error.message); setUploadingImage(false); return; }
     toast.success('添加成功！'); setSuperGunName(''); setSuperGunImage(null); setSuperGunImageUrl(''); setUploadingImage(false); fetchAll();
   }
-  async function deleteGun(id, name) { if (!window.confirm(`删除 ${name}？`)) return; await supabase.from('gun_variants').delete().eq('gun_id', id); await supabase.from('guns').delete().eq('id', id); toast.success('已删除'); if (selectedGunId === id) setSelectedGunId(''); fetchAll(); }
-  async function updateGunImage(id, file) { try { const url = await uploadImage(file); await supabase.from('guns').update({ image_url: url }).eq('id', id); toast.success('更新！'); fetchAll(); } catch { toast.error('失败'); } }
+  async function deleteGun(id, name) { if (!window.confirm(`删除 ${name}？`)) return; const { error } = await sw('guns', 'delete', { match: { id } }); if (error) { toast.error('删除失败：' + error.message); return; } toast.success('已删除'); if (selectedGunId === id) setSelectedGunId(''); fetchAll(); }
+  async function updateGunImage(id, file) { try { const url = await uploadImage(file); const { error } = await sw('guns', 'update', { values: { image_url: url }, match: { id } }); if (error) throw error; toast.success('更新！'); fetchAll(); } catch { toast.error('失败'); } }
 
   async function addVariant() {
     if (!selectedGunId || !variantForm.code.trim()) { toast.error('请填写改枪码'); return; }
     const gun = guns.find(g => g.id === selectedGunId);
     const mx = gun ? gun.variants.reduce((m, v) => Math.max(m, v.sort_order || 0), 0) : 0;
-    await supabase.from('gun_variants').insert({ gun_id: selectedGunId, ...variantForm, sort_order: mx + 1 });
+    const { error } = await sw('gun_variants', 'insert', { values: { gun_id: selectedGunId, ...variantForm, sort_order: mx + 1 } });
+    if (error) { toast.error('添加失败：' + error.message); return; }
     toast.success('添加成功！'); setVariantForm({ version: 'T0', price: '', mod_type: '', code: '', effective_range: '' }); fetchAll();
   }
-  async function deleteVariant(id) { if (!window.confirm('确定？')) return; await supabase.from('gun_variants').delete().eq('id', id); toast.success('已删除'); fetchAll(); }
-  async function updateVariant() { if (!editingVariant) return; await supabase.from('gun_variants').update({ version: editingVariant.version, price: editingVariant.price, mod_type: editingVariant.mod_type, code: editingVariant.code, effective_range: editingVariant.effective_range }).eq('id', editingVariant.id); toast.success('更新！'); setEditingVariant(null); fetchAll(); }
+  async function deleteVariant(id) { if (!window.confirm('确定？')) return; const { error } = await sw('gun_variants', 'delete', { match: { id } }); if (error) { toast.error('删除失败：' + error.message); return; } toast.success('已删除'); fetchAll(); }
+  async function updateVariant() { if (!editingVariant) return; const { error } = await sw('gun_variants', 'update', { values: { version: editingVariant.version, price: editingVariant.price, mod_type: editingVariant.mod_type, code: editingVariant.code, effective_range: editingVariant.effective_range }, match: { id: editingVariant.id } }); if (error) { toast.error('保存失败：' + error.message); return; } toast.success('更新！'); setEditingVariant(null); fetchAll(); }
 
   // 密码
   async function autoFetchPw() { setRefreshing(true); try { const r = await (await fetch('https://iugcmnqglxrcmdodugqk.supabase.co/functions/v1/fetch-passwords', { method: 'POST' })).json(); if (r.success) { toast.success('获取成功！'); await fetchPasswords(); } else toast.error('失败'); } catch { toast.error('失败'); } setRefreshing(false); }
-  async function manualSavePw() { const entries = Object.entries(pwInputs).filter(([_, v]) => v?.trim()); if (!entries.length) return; const today = new Date().toISOString().split('T')[0]; for (const [id, s] of entries) { const map = PW_MAPS.find(m => m.id === parseInt(id)); if (map) await supabase.from('daily_passwords').upsert({ map_id: parseInt(id), map_name: map.name, secret: s.trim(), date: today, updated_at: new Date().toISOString() }, { onConflict: 'map_id,date' }); } toast.success('已保存！'); await fetchPasswords(); }
+  async function manualSavePw() { const entries = Object.entries(pwInputs).filter(([_, v]) => v?.trim()); if (!entries.length) return; const today = new Date().toISOString().split('T')[0]; for (const [id, s] of entries) { const map = PW_MAPS.find(m => m.id === parseInt(id)); if (map) { const { error } = await sw('daily_passwords', 'upsert', { values: { map_id: parseInt(id), map_name: map.name, secret: s.trim(), date: today, updated_at: new Date().toISOString() }, onConflict: ['map_id', 'date'] }); if (error) { toast.error('保存失败：' + error.message); return; } } } toast.success('已保存！'); await fetchPasswords(); }
 
   const sf = 'https://iugcmnqglxrcmdodugqk.supabase.co/functions/v1/';
   async function refreshData(name) { setDataRefresh(p => ({...p,[name]:true})); try { const r = await (await fetch(sf+name)).json(); toast.success(r.success?'更新成功！':'失败'); } catch { toast.error('失败'); } setDataRefresh(p => ({...p,[name]:false})); }
 
-  async function addNewAdmin() { if (!newAdmin.username.trim()||!newAdmin.password.trim()) { toast.error('必填'); return; } if (newAdmin.password.length < 6) { toast.error('密码至少6位'); return; } if (newAdmin.role==='admin'&&!newAdmin.author_id) { toast.error('关联作者'); return; } const { error } = await supabase.rpc('admin_create', { p_username: newAdmin.username.trim(), p_password: newAdmin.password, p_role: newAdmin.role, p_author_id: newAdmin.role==='admin'?newAdmin.author_id:null, p_display_name: newAdmin.display_name.trim() }); if (error) { toast.error(/username_taken/.test(error.message) ? '用户名已存在' : '添加失败'); return; } toast.success('添加成功！'); setNewAdmin({ username:'',password:'',role:'admin',author_id:'',display_name:'' }); fetchAdmins(); }
-  async function deleteAdmin(id, n) { if (!window.confirm(`删除 ${n}？`)) return; await supabase.from('admins').delete().eq('id', id); toast.success('已删除'); fetchAdmins(); }
+  async function addNewAdmin() { if (!newAdmin.username.trim()||!newAdmin.password.trim()) { toast.error('必填'); return; } if (newAdmin.password.length < 6) { toast.error('密码至少6位'); return; } if (newAdmin.role==='admin'&&!newAdmin.author_id) { toast.error('关联作者'); return; } const { error } = await supabase.rpc('admin_create', { p_token: adminInfo?.token || '', p_username: newAdmin.username.trim(), p_password: newAdmin.password, p_role: newAdmin.role, p_author_id: newAdmin.role==='admin'?newAdmin.author_id:null, p_display_name: newAdmin.display_name.trim() }); if (error) { toast.error(/username_taken/.test(error.message) ? '用户名已存在' : '添加失败'); return; } toast.success('添加成功！'); setNewAdmin({ username:'',password:'',role:'admin',author_id:'',display_name:'' }); fetchAdmins(); }
+  async function deleteAdmin(id, n) { if (!window.confirm(`删除 ${n}？`)) return; const { error } = await sw('admins', 'delete', { match: { id } }); if (error) { toast.error('删除失败：' + error.message); return; } toast.success('已删除'); fetchAdmins(); }
 
-  async function submitProfileEdit() { if (!profileEdit.name.trim()) return; setProfileSubmitting(true); let url = null; try { if (profileAvatar) url = await uploadImage(profileAvatar); } catch { setProfileSubmitting(false); return; } await supabase.from('profile_reviews').insert({ admin_id: adminInfo.id, author_id: adminInfo.author_id, new_name: profileEdit.name.trim(), new_avatar_url: url, new_description: profileEdit.description.trim(), status: 'pending' }); toast.success('已提交审核！'); setProfileAvatar(null); setProfileSubmitting(false); }
+  async function submitProfileEdit() { if (!profileEdit.name.trim()) return; setProfileSubmitting(true); let url = null; try { if (profileAvatar) url = await uploadImage(profileAvatar); } catch { setProfileSubmitting(false); return; } const { error } = await sw('profile_reviews', 'insert', { values: { admin_id: adminInfo.id, author_id: adminInfo.author_id, new_name: profileEdit.name.trim(), new_avatar_url: url, new_description: profileEdit.description.trim(), status: 'pending' } }); setProfileSubmitting(false); if (error) { toast.error('提交失败：' + error.message); return; } toast.success('已提交审核！'); setProfileAvatar(null); }
 
   async function reviewProfile(rid, approved) {
-    if (approved) { const r = reviews.find(x => x.id === rid); if (r) { const u = {}; if (r.new_name) u.name = r.new_name; if (r.new_avatar_url) u.avatar_url = r.new_avatar_url; if (r.new_description !== null) u.description = r.new_description; if (Object.keys(u).length) await supabase.from('authors').update(u).eq('id', r.author_id); } }
-    await supabase.from('profile_reviews').update({ status: approved?'approved':'rejected', reviewed_at: new Date().toISOString() }).eq('id', rid);
+    if (approved) { const r = reviews.find(x => x.id === rid); if (r) { const u = {}; if (r.new_name) u.name = r.new_name; if (r.new_avatar_url) u.avatar_url = r.new_avatar_url; if (r.new_description !== null) u.description = r.new_description; if (Object.keys(u).length) await sw('authors', 'update', { values: u, match: { id: r.author_id } }); } }
+    await sw('profile_reviews', 'update', { values: { status: approved?'approved':'rejected', reviewed_at: new Date().toISOString() }, match: { id: rid } });
     toast.success(approved?'已通过！':'已拒绝'); fetchReviews(); fetchAll();
   }
 
@@ -288,44 +313,49 @@ function Admin({ isAdmin, setIsAdmin }) {
     const st = communityGunStats[pid] || { guns: 0, variants: 0 };
     if (!window.confirm(`⚠️ 确定要删除玩家「${name}」吗？\n\n将同时删除：\n• ${st.guns} 把枪械\n• ${st.variants} 个改枪码\n\n此操作不可撤销！`)) return;
     if (!window.confirm(`再次确认：删除「${name}」及其全部数据？`)) return;
-    const { error } = await supabase.from('players').delete().eq('id', pid);
+    const { error } = await sw('players', 'delete', { match: { id: pid } });
     if (error) { toast.error('删除失败：' + error.message); return; }
     toast.success(`✅ 玩家「${name}」及 ${st.guns} 把枪械、${st.variants} 个配置已删除`); fetchCommunity();
   }
   async function deletePlayerGuns(pid, name) {
     const st = communityGunStats[pid] || { guns: 0, variants: 0 };
     if (!window.confirm(`⚠️ 确定要清空「${name}」的所有枪械？\n\n将删除：\n• ${st.guns} 把枪械\n• ${st.variants} 个改枪码\n\n账号保留，只清空枪械数据。此操作不可撤销！`)) return;
-    const { error } = await supabase.from('guns').delete().eq('player_id', pid);
+    const { error } = await sw('guns', 'delete', { match: { player_id: pid } });
     if (error) { toast.error('清空失败：' + error.message); return; }
     toast.success(`✅ 已清空「${name}」的 ${st.guns} 把枪械和 ${st.variants} 个配置`); fetchCommunity();
   }
 
   // 改枪码审核
   async function approveCode(id) {
-    await supabase.from('gun_variants').update({ status: 'approved' }).eq('id', id);
+    const { error } = await sw('gun_variants', 'update', { values: { status: 'approved' }, match: { id } });
+    if (error) { toast.error('操作失败：' + error.message); return; }
     toast.success('已通过！'); fetchPendingCodes(); fetchAll();
   }
   async function approveAllCodes() {
     if (!pendingCodes.length) return;
     if (!window.confirm(`一键通过全部 ${pendingCodes.length} 个待审核改枪码？`)) return;
     const ids = pendingCodes.map(c => c.id);
-    await supabase.from('gun_variants').update({ status: 'approved' }).in('id', ids);
+    const { error } = await sw('gun_variants', 'update', { values: { status: 'approved' }, match: { id: ids } });
+    if (error) { toast.error('操作失败：' + error.message); return; }
     toast.success(`已通过全部 ${ids.length} 个改枪码！`); fetchPendingCodes(); fetchAll();
   }
   async function rejectCode(id) {
     if (!window.confirm('拒绝并删除此改枪码？')) return;
-    await supabase.from('gun_variants').delete().eq('id', id);
+    const { error } = await sw('gun_variants', 'delete', { match: { id } });
+    if (error) { toast.error('操作失败：' + error.message); return; }
     toast.success('已拒绝并删除'); fetchPendingCodes();
   }
 
   // 主播改枪码管理
   async function toggleCodeHidden(id, hidden) {
-    await supabase.from('official_gun_codes').update({ is_hidden: hidden }).eq('id', id);
+    const { error } = await sw('official_gun_codes', 'update', { values: { is_hidden: hidden }, match: { id } });
+    if (error) { toast.error('操作失败：' + error.message); return; }
     toast.success(hidden ? '已下架' : '已上架'); fetchOfficialCodes();
   }
   async function deleteOfficialCode(id, name) {
     if (!window.confirm(`删除「${name}」？`)) return;
-    await supabase.from('official_gun_codes').delete().eq('id', id);
+    const { error } = await sw('official_gun_codes', 'delete', { match: { id } });
+    if (error) { toast.error('删除失败：' + error.message); return; }
     toast.success('已删除'); fetchOfficialCodes();
   }
 
@@ -371,7 +401,7 @@ function Admin({ isAdmin, setIsAdmin }) {
     const action = hidden ? '下架' : '上架';
     if (!window.confirm(`确定${action}「${name}」的全部 ${codes.length} 个改枪码？`)) return;
     const ids = codes.map(c => c.id);
-    const { error } = await supabase.from('official_gun_codes').update({ is_hidden: hidden }).in('id', ids);
+    const { error } = await sw('official_gun_codes', 'update', { values: { is_hidden: hidden }, match: { id: ids } });
     if (error) { toast.error(`${action}失败`); return; }
     toast.success(`已${action}「${name}」的 ${codes.length} 个改枪码`); fetchOfficialCodes();
   }
@@ -383,10 +413,10 @@ function Admin({ isAdmin, setIsAdmin }) {
     if (!window.confirm(`再次确认：删除「${name}」的所有改枪码？`)) return;
     if (codes.length) {
       const ids = codes.map(c => c.id);
-      const { error } = await supabase.from('official_gun_codes').delete().in('id', ids);
+      const { error } = await sw('official_gun_codes', 'delete', { match: { id: ids } });
       if (error) { toast.error('删除失败'); return; }
     }
-    await supabase.from('streamers').delete().eq('name', name);
+    await sw('streamers', 'delete', { match: { name } });
     toast.success(`已删除「${name}」`);
     setSelectedStreamerName(''); fetchOfficialCodes(); fetchStreamers();
   }
@@ -401,7 +431,7 @@ function Admin({ isAdmin, setIsAdmin }) {
       try { avatarUrl = await uploadImage(newStreamerForm.avatar); } catch { toast.error('头像上传失败'); return; }
     }
     const maxSort = streamersData.reduce((m, s) => Math.max(m, s.sort_order), -1);
-    const { error } = await supabase.from('streamers').insert({ name, avatar_url: avatarUrl, sort_order: maxSort + 1 });
+    const { error } = await sw('streamers', 'insert', { values: { name, avatar_url: avatarUrl, sort_order: maxSort + 1 } });
     if (error) { toast.error('添加失败：' + error.message); return; }
     toast.success(`主播「${name}」已添加！`);
     setSelectedStreamerName(name);
@@ -425,7 +455,7 @@ function Admin({ isAdmin, setIsAdmin }) {
     }
     const maxSort = officialCodes.reduce((m, c) => Math.max(m, c.sort_order || 0), 0);
     const customId = 900000000 + Math.floor(Math.random() * 99999999);
-    const { error } = await supabase.from('official_gun_codes').insert({
+    const { error } = await sw('official_gun_codes', 'insert', { values: {
       id: customId,
       name: customStreamer.name.trim(),
       author_nickname: streamerName,
@@ -439,7 +469,7 @@ function Admin({ isAdmin, setIsAdmin }) {
       source: 'custom',
       sort_order: maxSort + 1,
       synced_at: new Date().toISOString(),
-    });
+    } });
     if (error) { toast.error('添加失败：' + error.message); return; }
     toast.success('改枪码已添加！');
     setCustomStreamer({ name: '', arms_name: '', arms_category: '突击步枪', arms_pic: '', solution_code: '', price: '', author_comment: '' });
@@ -452,10 +482,11 @@ function Admin({ isAdmin, setIsAdmin }) {
     try {
       const url = await uploadImage(file);
       // 更新 streamers 表
-      await supabase.from('streamers').update({ avatar_url: url }).eq('name', name);
+      const { error } = await sw('streamers', 'update', { values: { avatar_url: url }, match: { name } });
+      if (error) throw error;
       // 同步更新 official_gun_codes 中的头像
       const ids = officialCodes.filter(c => c.author_nickname === name).map(c => c.id);
-      if (ids.length) await supabase.from('official_gun_codes').update({ author_avatar: url }).in('id', ids);
+      if (ids.length) await sw('official_gun_codes', 'update', { values: { author_avatar: url }, match: { id: ids } });
       toast.success('头像已更新！'); fetchStreamers(); fetchOfficialCodes();
     } catch { toast.error('失败'); }
   }
@@ -473,12 +504,12 @@ function Admin({ isAdmin, setIsAdmin }) {
   }
   async function saveEditCode() {
     if (!editingCode) return;
-    const { error } = await supabase.from('official_gun_codes').update({
+    const { error } = await sw('official_gun_codes', 'update', { values: {
       name: editingCode.name, solution_code: editingCode.solution_code,
       arms_name: editingCode.arms_name, arms_pic: editingCode.arms_pic,
       arms_category: editingCode.arms_category, price: parseInt(editingCode.price) || 0,
       author_comment: editingCode.author_comment || null,
-    }).eq('id', editingCode.id);
+    }, match: { id: editingCode.id } });
     if (error) { toast.error('保存失败'); return; }
     toast.success('已更新！'); setEditingCode(null); fetchOfficialCodes();
   }
@@ -494,9 +525,10 @@ function Admin({ isAdmin, setIsAdmin }) {
     setStreamersData(updated);
     setDragIdx(null);
     // 批量 upsert
-    const { error } = await supabase.from('streamers').upsert(
-      updated.map(s => ({ id: s.id, name: s.name, avatar_url: s.avatar_url, sort_order: s.sort_order, is_hidden: s.is_hidden }))
-    );
+    const { error } = await sw('streamers', 'upsert', {
+      values: updated.map(s => ({ id: s.id, name: s.name, avatar_url: s.avatar_url, sort_order: s.sort_order, is_hidden: s.is_hidden })),
+      onConflict: ['id'],
+    });
     if (error) { toast.error('排序保存失败'); fetchStreamers(); return; }
     toast.success('排序已更新');
   }
@@ -510,7 +542,8 @@ function Admin({ isAdmin, setIsAdmin }) {
     if (p.pending_description !== null) updates.description = p.pending_description;
     if (p.pending_avatar_url) updates.avatar_url = p.pending_avatar_url;
     updates.pending_nickname = null; updates.pending_description = null; updates.pending_avatar_url = null;
-    await supabase.from('players').update(updates).eq('id', pid);
+    const { error } = await sw('players', 'update', { values: updates, match: { id: pid } });
+    if (error) { toast.error('操作失败：' + error.message); return; }
     toast.success('资料已通过！'); fetchPendingProfiles();
   }
   async function approveAllProfiles() {
@@ -522,35 +555,35 @@ function Admin({ isAdmin, setIsAdmin }) {
       if (p.pending_description !== null) updates.description = p.pending_description;
       if (p.pending_avatar_url) updates.avatar_url = p.pending_avatar_url;
       updates.pending_nickname = null; updates.pending_description = null; updates.pending_avatar_url = null;
-      await supabase.from('players').update(updates).eq('id', p.id);
+      await sw('players', 'update', { values: updates, match: { id: p.id } });
     }
     toast.success(`已通过全部 ${pendingProfiles.length} 个资料修改！`); fetchPendingProfiles();
   }
   async function rejectProfile(pid) {
-    await supabase.from('players').update({ profile_status: 'approved', pending_nickname: null, pending_description: null, pending_avatar_url: null }).eq('id', pid);
+    await sw('players', 'update', { values: { profile_status: 'approved', pending_nickname: null, pending_description: null, pending_avatar_url: null }, match: { id: pid } });
     toast.success('已拒绝'); fetchPendingProfiles();
   }
 
   // 敏感词管理
   async function addBannedWord() {
     if (!newBannedWord.trim()) return;
-    const { error } = await supabase.from('banned_words').insert({ word: newBannedWord.trim().toLowerCase(), category: 'custom' });
+    const { error } = await sw('banned_words', 'insert', { values: { word: newBannedWord.trim().toLowerCase(), category: 'custom' } });
     if (error) { toast.error(error.message.includes('duplicate') ? '词汇已存在' : '添加失败'); return; }
     toast.success('已添加'); setNewBannedWord(''); fetchBannedWords();
   }
   async function deleteBannedWord(id) {
-    await supabase.from('banned_words').delete().eq('id', id);
+    await sw('banned_words', 'delete', { match: { id } });
     toast.success('已删除'); fetchBannedWords();
   }
 
   async function updateQqCreds() {
     if (!qqForm.openid.trim() || !qqForm.access_token.trim()) { toast.error('openid 和 access_token 必填'); return; }
     setQqSaving(true);
-    const { error } = await supabase.from('qq_credentials').update({
+    const { error } = await sw('qq_credentials', 'update', { values: {
       openid: qqForm.openid.trim(),
       access_token: qqForm.access_token.trim(),
       updated_at: new Date().toISOString(),
-    }).eq('id', 1);
+    }, match: { id: 1 } });
     setQqSaving(false);
     if (error) { toast.error('保存失败'); return; }
     toast.success('QQ 凭证已更新！数据将在下次定时任务时自动刷新');
@@ -632,7 +665,7 @@ function Admin({ isAdmin, setIsAdmin }) {
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>🟢 管理员 · {authorGuns.length} 把枪 · {authorGuns.reduce((s,g) => s+g.variants.length, 0)} 个配置</div>
           </div>
         </div>
-        <button className="btn btn-danger btn-small" onClick={() => { setIsAdmin(false); setAdminInfo(null); localStorage.removeItem('df_admin'); }}>退出</button>
+        <button className="btn btn-danger btn-small" onClick={adminLogout}>退出</button>
       </div>
 
       <div style={{ display: 'flex', gap: 6 }}>
@@ -727,7 +760,7 @@ function Admin({ isAdmin, setIsAdmin }) {
     <div style={{ display: 'grid', gap: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div><h1 className="page-title">管理后台</h1><p style={{fontSize:12,color:'var(--text-muted)'}}>{adminInfo?.display_name} · 🔴 超级管理员</p></div>
-        <button className="btn btn-danger btn-small" onClick={() => { setIsAdmin(false); setAdminInfo(null); localStorage.removeItem('df_admin'); }}>退出</button>
+        <button className="btn btn-danger btn-small" onClick={adminLogout}>退出</button>
       </div>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
