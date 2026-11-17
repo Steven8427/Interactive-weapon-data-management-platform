@@ -314,7 +314,6 @@ function Community() {
 
   function copyCode(code) { navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast.success(t('改枪码已复制！')); }); }
   function getVersionClass(v) { if (!v) return 'version-t0'; if (v.includes('T0')) return 'version-t0'; if (v.includes('T1')) return 'version-t1'; if (v.includes('T2')) return 'version-t2'; return 'version-t0'; }
-  function hasField(variants, field) { return variants.some(v => v[field] && v[field].toString().trim() !== ''); }
 
   // Filter guns for display
   const versions = useMemo(() => { const s = new Set(); guns.forEach(g => g.variants.forEach(v => { if (v.version) s.add(v.version); })); return ['全部', ...Array.from(s).sort()]; }, [guns]);
@@ -488,10 +487,11 @@ function Community() {
         ) : (
           filtered.map(gun => {
             const catC = CAT_COLOR[gun.category] || '#1ecc60';
-            const showVersion = hasField(gun.variants, 'version');
-            const showPrice = hasField(gun.variants, 'price');
-            const showModType = hasField(gun.variants, 'mod_type');
-            const showRange = hasField(gun.variants, 'effective_range');
+            // Same column layout for every gun card; empty values render blank.
+            const showVersion = true;
+            const showPrice = true;
+            const showModType = true;
+            const showRange = true;
 
             return (
               <div key={gun.id} className="gun-card">
@@ -524,7 +524,7 @@ function Community() {
                         <tr key={v.id}>
                           {editingVariant?.id === v.id ? (<>
                             <td style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
-                            {showVersion && <td><select value={editingVariant.version} onChange={e => setEditingVariant({ ...editingVariant, version: e.target.value })} style={{ width: 55, padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11 }}>{['T0','T1','T2','T3','T4'].map(t => <option key={t}>{t}</option>)}</select></td>}
+                            {showVersion && <td><select value={editingVariant.version} onChange={e => setEditingVariant({ ...editingVariant, version: e.target.value })} style={{ width: 55, padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11 }}>{[...new Set([editingVariant.version || '', 'T0','T1','T2','T3','T4'])].map(t => <option key={t} value={t}>{t}</option>)}</select></td>}
                             {showPrice && <td><input value={editingVariant.price} onChange={e => setEditingVariant({ ...editingVariant, price: e.target.value })} style={{ width: 50, padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11 }} /></td>}
                             {showModType && <td><input value={editingVariant.mod_type} onChange={e => setEditingVariant({ ...editingVariant, mod_type: e.target.value })} style={{ width: 80, padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11 }} /></td>}
                             <td><input value={editingVariant.code} onChange={e => setEditingVariant({ ...editingVariant, code: e.target.value })} style={{ width: '100%', padding: 3, background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: 4, fontFamily: 'monospace', fontSize: 10 }} /></td>
@@ -533,13 +533,13 @@ function Community() {
                           </>) : (<>
                             <td style={{ color: 'var(--text-muted)', cursor: 'pointer' }} onClick={() => copyCode(v.code)}>{idx + 1}</td>
                             {showVersion && <td onClick={() => copyCode(v.code)} style={{ cursor: 'pointer' }}>{v.version && <span className={`version-badge ${getVersionClass(v.version)}`}>{v.version}</span>}</td>}
-                            {showPrice && <td style={{ fontWeight: 600, cursor: 'pointer' }} onClick={() => copyCode(v.code)}>{v.price || '-'}</td>}
-                            {showModType && <td style={{ cursor: 'pointer' }} onClick={() => copyCode(v.code)}>{v.mod_type || '-'}</td>}
+                            {showPrice && <td style={{ fontWeight: 600, cursor: 'pointer' }} onClick={() => copyCode(v.code)}>{v.price || ''}</td>}
+                            {showModType && <td style={{ cursor: 'pointer' }} onClick={() => copyCode(v.code)}>{v.mod_type || ''}</td>}
                             <td className="code-cell" onClick={() => copyCode(v.code)} style={{ cursor: 'pointer' }}>
                               {v.code}
                               {v.status === 'pending' && <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 4, background: 'rgba(224,160,48,0.15)', color: '#e0a030', fontWeight: 600 }}>{t('待审核')}</span>}
                             </td>
-                            {showRange && <td onClick={() => copyCode(v.code)} style={{ cursor: 'pointer' }}>{v.effective_range ? <span className="range-badge">{v.effective_range}</span> : '-'}</td>}
+                            {showRange && <td onClick={() => copyCode(v.code)} style={{ cursor: 'pointer' }}>{v.effective_range ? <span className="range-badge">{v.effective_range}</span> : null}</td>}
                             {isOwnProfile && <td><div style={{ display: 'flex', gap: 3 }}><button className="btn btn-success btn-small" onClick={() => setEditingVariant({ ...v })}>{t('编')}</button><button className="btn btn-danger btn-small" onClick={() => deleteVariant(v.id)}>{t('删')}</button></div></td>}
                           </>)}
                         </tr>
