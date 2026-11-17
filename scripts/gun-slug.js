@@ -11,6 +11,11 @@ function weaponModel(armsName) {
 }
 function gunSlug(armsName) {
   const model = weaponModel(armsName);
-  return model.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const ascii = model.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (ascii) return ascii;
+  return model.toLowerCase().replace(/[\s/\\?#%]+/g, '-').replace(/^-+|-+$/g, '');
 }
-module.exports = { weaponModel, gunSlug };
+function slugKey(slug) {
+  return (slug || '').replace(/-/g, '');
+}
+module.exports = { weaponModel, gunSlug, slugKey };

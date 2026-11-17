@@ -104,7 +104,8 @@ async function fetchWeapons() {
   const map = {};
   for (const c of rows) {
     const s = gunSlug(c.arms_name);
-    if (!s) continue;
+    // static pages only for ASCII slugs (non-ASCII weapon pages are served by the SPA)
+    if (!s || !/^[a-z0-9-]+$/.test(s)) continue;
     if (!map[s]) map[s] = { slug: s, model: weaponModel(c.arms_name), category: c.arms_category, pic: c.arms_pic, codes: [], apply: 0 };
     map[s].codes.push(c);
     map[s].apply += (c.apply_num || 0);

@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
@@ -6,14 +6,22 @@ import { useCachedData } from '../dataCache';
 import { fetchAllRows } from '../supabaseFetch';
 import SEO from '../components/SEO';
 import { useT } from '../i18n';
-import { gunSlug, weaponModel } from '../gunSlug';
+import { gunSlug, weaponModel, slugKey } from '../gunSlug';
 
 const CAT_COLOR = { '突击步枪': '#30d060', '战斗步枪': '#e0a030', '射手步枪': '#50b0e0', '冲锋枪': '#d050d0', '机枪': '#e06030', '狙击步枪': '#4090f0', '连狙': '#60c0c0', '霰弹枪': '#d04040', '手枪': '#a0a0a0', '弓弩': '#90d040' };
+const CAT_ICON = { '突击步枪': '🔫', '战斗步枪': '⚔️', '射手步枪': '🎯', '冲锋枪': '💨', '机枪': '🔥', '狙击步枪': '🔭', '连狙': '🎯', '霰弹枪': '💥', '手枪': '🔫', '弓弩': '🏹' };
+const CATS = ['突击步枪', '战斗步枪', '射手步枪', '冲锋枪', '机枪', '狙击步枪', '连狙', '霰弹枪', '手枪', '弓弩'];
+const PAGE_SIZE = 30;
+// nicknames used in community data -> the official weapon's slug
+const SLUG_ALIAS = { '巴雷特': 'm82' };
 
 function GunLanding() {
   const { t } = useT();
   const { slug } = useParams();
   const [search, setSearch] = useState('');
+  const [filterCat, setFilterCat] = useState('全部');
+  const [sortBy, setSortBy] = useState('hot');
+  const [page, setPage] = useState(1);
 
   const fetchAll = useCallback(async () => {
     const [official, guns, variants, playersData] = await Promise.all([
@@ -29,12 +37,17 @@ function GunLanding() {
   // Merge official/streamer codes + approved community codes, grouped by weapon.
   const weapons = useMemo(() => {
     const d = data || { official: [], guns: [], variants: [], players: [] };
+    // keyed by slugKey so "SCAR-H"/"SCARH" and "SG-552"/"SG552" merge into one
+    // weapon; the first slug seen (official codes come first) stays canonical.
     const map = {};
     const ensure = (s, model, category, pic) => {
-      if (!map[s]) map[s] = { slug: s, model, category, pic, codes: [], apply: 0 };
-      if (!map[s].pic && pic) map[s].pic = pic;
-      if (!map[s].category && category) map[s].category = category;
-      return map[s];
+      const k = slugKey(SLUG_ALIAS[s] || s);
+      if (!map[k]) map[k] = { slug: SLUG_ALIAS[s] || s, aliases: [], model, category: '', catVotes: {}, pic, codes: [], apply: 0 };
+      const w = map[k];
+      if (!w.aliases.includes(s)) w.aliases.push(s);
+      if (!w.pic && pic) w.pic = pic;
+      if (category) w.catVotes[category] = (w.catVotes[category] || 0) + 1;
+      return w;
     };
     for (const c of d.official) {
       const s = gunSlug(c.arms_name); if (!s) continue;
@@ -51,18 +64,45 @@ function GunLanding() {
       const w = ensure(s, weaponModel(g.name), g.category, g.image_url);
       w.codes.push({ id: 'c' + v.id, source: 'community', name: v.mod_type || v.version || t('玩家分享'), code: v.code, author: pmap[g.player_id] || t('玩家'), apply: 0, price: v.price, version: v.version });
     }
+    // category = the one most of the weapon's codes agree on (a few rows carry a wrong default)
+    for (const w of Object.values(map)) {
+      const votes = Object.entries(w.catVotes).sort((a, b) => b[1] - a[1] || (CATS.includes(b[0]) ? 1 : 0) - (CATS.includes(a[0]) ? 1 : 0));
+      w.category = votes.length ? votes[0][0] : '';
+    }
     return Object.values(map).filter(w => w.codes.length).sort((a, b) => b.apply - a.apply || b.codes.length - a.codes.length);
   }, [data, t]);
 
+  // category tabs (only categories that have weapons), with counts
+  const catCounts = useMemo(() => {
+    const m = {};
+    weapons.forEach(w => { const c = w.category || '其他'; m[c] = (m[c] || 0) + 1; });
+    return m;
+  }, [weapons]);
+  const catTabs = useMemo(() => ['全部', ...CATS.filter(c => catCounts[c]), ...Object.keys(catCounts).filter(c => !CATS.includes(c))], [catCounts]);
+
   const filteredWeapons = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return weapons;
-    return weapons.filter(w =>
+    let r = weapons;
+    if (filterCat !== '全部') r = r.filter(w => (w.category || '其他') === filterCat);
+    if (q) r = r.filter(w =>
       w.model.toLowerCase().includes(q) ||
       (w.category || '').toLowerCase().includes(q) ||
       w.codes.some(c => (c.code || '').toLowerCase().includes(q) || (c.author || '').toLowerCase().includes(q) || (c.name || '').toLowerCase().includes(q))
     );
-  }, [weapons, search]);
+    if (sortBy === 'count') r = [...r].sort((a, b) => b.codes.length - a.codes.length || b.apply - a.apply);
+    if (sortBy === 'name') r = [...r].sort((a, b) => a.model.localeCompare(b.model, 'zh-Hans-CN', { numeric: true }));
+    return r;
+  }, [weapons, search, filterCat, sortBy]);
+
+  // pagination: back to page 1 whenever the filter changes
+  const pageCount = Math.max(1, Math.ceil(filteredWeapons.length / PAGE_SIZE));
+  useEffect(() => { setPage(1); }, [search, filterCat, sortBy]);
+  const curPage = Math.min(page, pageCount);
+  const pageWeapons = filteredWeapons.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+  function goPage(p) {
+    setPage(p);
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+  }
 
   function copyCode(code) {
     navigator.clipboard.writeText(code).then(() => toast.success(t('改枪码已复制！'))).catch(() => {
@@ -87,20 +127,40 @@ function GunLanding() {
         <SEO title={t('武器改枪码大全')} path="/gun" description={t('三角洲行动各热门武器的改枪码大全，按武器查询官方与主播同款改枪码，一键复制。')} />
         <h1 className="page-title">🔫 {t('武器改枪码大全')}</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>{t('按武器查询三角洲行动改枪码 · 共 {n} 把武器', { n: weapons.length })}</p>
-        <div className="search-bar" style={{ marginBottom: 20, flex: 'none' }}>
-          <span className="search-icon">🔍</span>
-          <input placeholder={t('搜索枪名、改枪码、作者...')} value={search} onChange={e => setSearch(e.target.value)} />
+        {/* 分类 */}
+        <div className="filter-bar" style={{ marginBottom: 12 }}>
+          {catTabs.map(cat => (
+            <button key={cat} className={`filter-chip ${filterCat === cat ? 'active' : ''}`} onClick={() => setFilterCat(cat)}>
+              {cat !== '全部' && CAT_ICON[cat] ? CAT_ICON[cat] + ' ' : ''}{t(cat)}
+              <span style={{ opacity: 0.6, marginLeft: 4, fontSize: '0.85em' }}>{cat === '全部' ? weapons.length : catCounts[cat]}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div className="search-bar" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
+            <span className="search-icon">🔍</span>
+            <input placeholder={t('搜索枪名、改枪码、作者...')} value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="hot">{t('热度排序')}</option>
+            <option value="count">{t('方案最多')}</option>
+            <option value="name">{t('名称排序')}</option>
+          </select>
         </div>
         {filteredWeapons.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>{t('没有找到匹配的武器')}</div>
-        ) : (
+        ) : (<>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-            {filteredWeapons.map(w => {
+            {pageWeapons.map(w => {
               const c = CAT_COLOR[w.category] || '#20e870';
               return (
                 <Link key={w.slug} to={`/gun/${w.slug}`} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 14, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, transition: 'border-color 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = `${c}50`} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
-                  {w.pic && <img src={w.pic} alt={w.model} style={{ width: 48, height: 34, objectFit: 'contain', flexShrink: 0, background: 'linear-gradient(135deg,#1a2a3a,#1e3040)', borderRadius: 6, border: '1px solid var(--border)', padding: 2 }} onError={e => e.target.style.display = 'none'} />}
+                  <div style={{ width: 52, height: 38, flexShrink: 0, background: 'linear-gradient(135deg,#1a2a3a,#1e3040)', borderRadius: 6, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                    {w.pic
+                      ? <img src={w.pic} alt={w.model} loading="lazy" style={{ width: 48, height: 34, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; }} />
+                      : (CAT_ICON[w.category] || '🔫')}
+                  </div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.model}</div>
                     <div style={{ fontSize: 12, color: c }}>{t(w.category)} · {t('{n} 个方案', { n: w.codes.length })}</div>
@@ -109,13 +169,24 @@ function GunLanding() {
               );
             })}
           </div>
-        )}
+          {pageCount > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 20, flexWrap: 'wrap' }}>
+              <button className="filter-chip" disabled={curPage <= 1} onClick={() => goPage(curPage - 1)} style={{ opacity: curPage <= 1 ? 0.4 : 1 }}>‹ {t('上一页')}</button>
+              {Array.from({ length: pageCount }, (_, i) => i + 1).map(p => (
+                <button key={p} className={`filter-chip ${p === curPage ? 'active' : ''}`} onClick={() => goPage(p)} style={{ minWidth: 36, justifyContent: 'center' }}>{p}</button>
+              ))}
+              <button className="filter-chip" disabled={curPage >= pageCount} onClick={() => goPage(curPage + 1)} style={{ opacity: curPage >= pageCount ? 0.4 : 1 }}>{t('下一页')} ›</button>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 6 }}>{t('第 {p} / {n} 页', { p: curPage, n: pageCount })}</span>
+            </div>
+          )}
+        </>)}
       </div>
     );
   }
 
-  // ---- single weapon: /gun/:slug ----
-  const w = weapons.find(x => x.slug === slug);
+  // ---- single weapon: /gun/:slug (also reachable via merged aliases like /gun/scarh) ----
+  const want = (slug || '').toLowerCase();
+  const w = weapons.find(x => x.slug === want || x.aliases.includes(want)) || weapons.find(x => slugKey(x.slug) === slugKey(want));
   if (!w) {
     return (
       <div>
